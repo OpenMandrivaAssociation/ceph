@@ -18,10 +18,10 @@ Url:		http://ceph.com
 Source0:	http://ceph.com/download/%{name}-%{version}.tar.bz2
 
 BuildRequires:	boost-devel
+BuildRequires:	fcgi-devel
 BuildRequires:	keyutils-devel
 BuildRequires:	libaio-devel
-BuildRequires:	libatomic_ops-devel
-BuildRequires:	libfcgi-devel
+BuildRequires:	pkgconfig(atomic_ops)
 BuildRequires:	pkgconfig(fuse)
 BuildRequires:	pkgconfig(libcurl)
 BuildRequires:	pkgconfig(libedit)
