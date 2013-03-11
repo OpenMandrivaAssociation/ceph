@@ -22,6 +22,7 @@ BuildRequires:	fcgi-devel
 BuildRequires:	keyutils-devel
 BuildRequires:	libaio-devel
 BuildRequires:	pkgconfig(atomic_ops)
+BuildRequires:	pkgconfig(expat)
 BuildRequires:	pkgconfig(fuse)
 BuildRequires:	pkgconfig(libcurl)
 BuildRequires:	pkgconfig(libedit)
