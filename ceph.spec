@@ -28,6 +28,7 @@ BuildRequires:	pkgconfig(libcurl)
 BuildRequires:	pkgconfig(libedit)
 BuildRequires:	pkgconfig(nss)
 BuildRequires:	pkgconfig(uuid)
+BuildRequires:	snappy-devel
 Requires(preun,post):	chkconfig
 
 %description
