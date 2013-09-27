@@ -10,7 +10,7 @@
 
 Summary:	User space components of the Ceph file system
 Name:		ceph
-Version:	0.67
+Version:	0.69
 Release:	1
 License:	GPLv2
 Group:		System/Base
@@ -102,6 +102,7 @@ shared library allowing applications to manage these block devices.
 Summary:	Ceph headers
 Group:		Development/C
 License:	LGPLv2
+Provides:	%{name}-devel
 Requires:	%{libcephfs} = %{version}-%{release}
 Requires:	%{libcls} = %{version}-%{release}
 Requires:	%{librados} = %{version}-%{release}
