@@ -1,5 +1,6 @@
 removed_sources:
   ceph-0.57.tar.bz2: 13b027af462a39a98ac03e4cdd0738b8a53b1c9e
   ceph-0.67.tar.bz2: 57eabbd48b246c218f3b7e06e2000ab4e748ca6a
-sources:
   ceph-0.69.tar.bz2: 855939fffd099c7f967568f000dd1056a8789255
+sources:
+  ceph-0.72.2.tar.bz2: a6d2ebd9ecc0be31f1e1d3a104a264a7aa473572

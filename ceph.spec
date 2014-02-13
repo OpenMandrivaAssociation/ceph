@@ -1,8 +1,10 @@
 %define _disable_ld_no_undefined 1
 
+%define	maj0	0
 %define	major	1
 %define	maj2	2
 %define	libcephfs	%mklibname cephfs %{major}
+%define	liberasure	%mklibname erasure %{major}
 %define	libcls		%mklibname cls %{major}
 %define	librados	%mklibname rados %{maj2}
 %define	librbd		%mklibname rbd %{major}
@@ -10,8 +12,8 @@
 
 Summary:	User space components of the Ceph file system
 Name:		ceph
-Version:	0.69
-Release:	5
+Version:	0.72.2
+Release:	1
 License:	GPLv2
 Group:		System/Base
 Url:		http://ceph.com
@@ -60,6 +62,17 @@ Group:		System/Libraries
 License:	LGPLv2
 
 %description -n %{libcephfs}
+Ceph is a distributed network file system designed to provide excellent
+performance, reliability, and scalability. This is a shared library
+allowing applications to access a Ceph distributed file system via a
+POSIX-like interface.
+
+%package -n %{liberasure}
+Summary:	Ceph distributed file system client library
+Group:		System/Libraries
+License:	LGPLv2
+
+%description -n %{liberasure}
 Ceph is a distributed network file system designed to provide excellent
 performance, reliability, and scalability. This is a shared library
 allowing applications to access a Ceph distributed file system via a
@@ -188,9 +201,11 @@ fi
 %{_bindir}/ceph_filestore_dump
 %{_bindir}/ceph-rest-api
 %{_bindir}/ceph_mon_store_converter
+%{_bindir}/ceph-post-file
+%{_bindir}/ceph_filestore_tool
 %{_initrddir}/ceph
-%{_sbindir}/mkcephfs
-%{_sbindir}/mount.ceph
+/sbin/mkcephfs
+/sbin/mount.ceph
 %{_sbindir}/ceph-disk-activate
 %{_sbindir}/ceph-disk-prepare
 %{_sbindir}/ceph-create-keys
@@ -222,14 +237,26 @@ fi
 %{_mandir}/man8/ceph-dencoder.8*
 %{_mandir}/man8/ceph-rbdnamer.8*
 %{_mandir}/man8/ceph-rest-api.8.*
+%{_mandir}/man8/ceph-post-file.8.*
 %dir %{_localstatedir}/lib/ceph/
 %dir %{_localstatedir}/lib/ceph/tmp/
 %dir %{_localstatedir}/log/ceph/
+%{_datadir}/ceph/id_dsa_drop.ceph.com
+%{_datadir}/ceph/id_dsa_drop.ceph.com.pub
+%{_datadir}/ceph/known_hosts_drop.ceph.com
+
+%files -n %{liberasure}
+%{_libdir}/erasure-code/libec_example.so.%{maj0}*
+%{_libdir}/erasure-code/libec_fail_to_initialize.so.%{maj0}*
+%{_libdir}/erasure-code/libec_fail_to_register.so.%{maj0}*
+%{_libdir}/erasure-code/libec_hangs.so.%{maj0}*
+%{_libdir}/erasure-code/libec_jerasure.so.%{major}*
+%{_libdir}/erasure-code/libec_missing_entry_point.so.%{maj0}*
 
 %files fuse
 %{_bindir}/ceph-fuse
 %{_bindir}/rbd-fuse
-%{_sbindir}/mount.fuse.ceph
+/sbin/mount.fuse.ceph
 %{_mandir}/man8/ceph-fuse.8*
 %{_mandir}/man8/rbd-fuse.8*
 
@@ -254,6 +281,7 @@ fi
 %{_libdir}/rados-classes/libcls_statelog.so.%{major}*
 %{_libdir}/rados-classes/libcls_replica*.so.%{major}*
 %{_libdir}/rados-classes/libcls_log.so.%{major}*
+%{_libdir}/rados-classes/libcls_hello.so.%{major}*
 
 %files -n %{librados}
 %{_libdir}/librados.so.%{maj2}*
@@ -278,6 +306,7 @@ fi
 %{_libdir}/librbd.so
 %{_libdir}/librados.so
 %{_libdir}/rados-classes/*.so
+%{_libdir}/erasure-code/*.so
 
 %files -n python-ceph
 %{python_sitelib}/*.py*
