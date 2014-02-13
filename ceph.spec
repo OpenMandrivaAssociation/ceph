@@ -18,6 +18,7 @@ License:	GPLv2
 Group:		System/Base
 Url:		http://ceph.com
 Source0:	http://ceph.com/download/%{name}-%{version}.tar.bz2
+Source1:	ceph.rpmlintrc
 
 BuildRequires:	boost-devel
 BuildRequires:	fcgi-devel
