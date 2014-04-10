@@ -1,8 +1,10 @@
 %define _disable_ld_no_undefined 1
 
+%define	maj0	0
 %define	major	1
 %define	maj2	2
 %define	libcephfs	%mklibname cephfs %{major}
+%define	liberasure	%mklibname erasure %{major}
 %define	libcls		%mklibname cls %{major}
 %define	librados	%mklibname rados %{maj2}
 %define	librbd		%mklibname rbd %{major}
@@ -10,12 +12,13 @@
 
 Summary:	User space components of the Ceph file system
 Name:		ceph
-Version:	0.57
-Release:	2
+Version:	0.72.2
+Release:	1
 License:	GPLv2
 Group:		System/Base
 Url:		http://ceph.com
 Source0:	http://ceph.com/download/%{name}-%{version}.tar.bz2
+Source1:	ceph.rpmlintrc
 
 BuildRequires:	boost-devel
 BuildRequires:	fcgi-devel
@@ -28,6 +31,8 @@ BuildRequires:	pkgconfig(libcurl)
 BuildRequires:	pkgconfig(libedit)
 BuildRequires:	pkgconfig(nss)
 BuildRequires:	pkgconfig(uuid)
+BuildRequires:	pkgconfig(leveldb)
+BuildRequires:	snappy-devel
 Requires(preun,post):	chkconfig
 
 %description
@@ -45,7 +50,7 @@ FUSE based client for Ceph distributed network file system
 %package radosgw
 Summary:	Rados REST gateway
 Group:		System/Base
-Requires:	mod_fcgid
+Requires:	apache-mod_fcgid
 
 %description radosgw
 radosgw is an S3 HTTP REST gateway for the RADOS object store. It is
@@ -58,6 +63,17 @@ Group:		System/Libraries
 License:	LGPLv2
 
 %description -n %{libcephfs}
+Ceph is a distributed network file system designed to provide excellent
+performance, reliability, and scalability. This is a shared library
+allowing applications to access a Ceph distributed file system via a
+POSIX-like interface.
+
+%package -n %{liberasure}
+Summary:	Ceph distributed file system client library
+Group:		System/Libraries
+License:	LGPLv2
+
+%description -n %{liberasure}
 Ceph is a distributed network file system designed to provide excellent
 performance, reliability, and scalability. This is a shared library
 allowing applications to access a Ceph distributed file system via a
@@ -100,6 +116,7 @@ shared library allowing applications to manage these block devices.
 Summary:	Ceph headers
 Group:		Development/C
 License:	LGPLv2
+Provides:	%{name}-devel
 Requires:	%{libcephfs} = %{version}-%{release}
 Requires:	%{libcls} = %{version}-%{release}
 Requires:	%{librados} = %{version}-%{release}
@@ -122,6 +139,7 @@ object storage.
 %setup -q
 
 %build
+sed -i 's!$(exec_prefix)!!g' src/Makefile.*
 %configure2_5x \
 	--disable-static \
 	--with-radosgw \
@@ -132,18 +150,16 @@ object storage.
 
 %install
 %makeinstall_std
-
+find %{buildroot} -type f -name "*.la" -exec rm -f {} ';'
+find %{buildroot} -type f -name "*.a" -exec rm -f {} ';'
 install -D src/init-ceph %{buildroot}%{_initrddir}/ceph
-install -D src/init-radosgw %{buildroot}%{_initrddir}/ceph-radosgw
-mkdir -p %{buildroot}%{_sbindir}
-ln -sf ../../etc/init.d/ceph %{buildroot}%{_sbindir}/rcceph
-ln -sf ../../etc/init.d/ceph-radosgw %{buildroot}%{_sbindir}/rcceph-radosgw
+chmod 0644 %{buildroot}%{_docdir}/ceph/sample.ceph.conf
 install -m 0644 -D src/logrotate.conf %{buildroot}%{_sysconfdir}/logrotate.d/ceph
-
 mkdir -p %{buildroot}%{_localstatedir}/lib/ceph/tmp/
 mkdir -p %{buildroot}%{_localstatedir}/log/ceph/
-mkdir -p %{buildroot}%{_localstatedir}/run/ceph/
-mkdir -p %{buildroot}%{_sysconfdir}/ceph/
+mkdir -p %{buildroot}%{_localstatedir}/log/ceph/stat
+mkdir -p %{buildroot}%{_sysconfdir}/ceph
+mkdir -p %{buildroot}%{_sysconfdir}/bash_completion.d
 
 %post
 /sbin/chkconfig --add ceph
@@ -159,14 +175,10 @@ if [ "$1" -ge "1" ] ; then
     /sbin/service ceph condrestart >/dev/null 2>&1 || :
 fi
 
+
 %files
-%config %{_sysconfdir}/bash_completion.d/ceph
-%config %{_sysconfdir}/bash_completion.d/rados
-%config %{_sysconfdir}/bash_completion.d/radosgw-admin
-%config %{_sysconfdir}/bash_completion.d/rbd
-%dir %{_sysconfdir}/ceph/
-%config(noreplace) %{_sysconfdir}/logrotate.d/ceph
-%{_initrddir}/ceph
+%doc README COPYING
+%dir %{_sysconfdir}/ceph
 %{_bindir}/ceph
 %{_bindir}/cephfs
 %{_bindir}/ceph-conf
@@ -181,49 +193,83 @@ fi
 %{_bindir}/ceph-mds
 %{_bindir}/ceph-osd
 %{_bindir}/ceph-rbdnamer
-%{_bindir}/ceph-dencoder
 %{_bindir}/librados-config
 %{_bindir}/rados
 %{_bindir}/rbd
 %{_bindir}/ceph-debugpack
-%{_bindir}/ceph-filestore-dump
 %{_bindir}/ceph-coverage
-%{_sbindir}/ceph-create-keys
+%{_bindir}/ceph-dencoder
+%{_bindir}/ceph_filestore_dump
+%{_bindir}/ceph-rest-api
+%{_bindir}/ceph_mon_store_converter
+%{_bindir}/ceph-post-file
+%{_bindir}/ceph_filestore_tool
+%{_initrddir}/ceph
+/sbin/mkcephfs
+/sbin/mount.ceph
 %{_sbindir}/ceph-disk-activate
 %{_sbindir}/ceph-disk-prepare
-%{_sbindir}/mkcephfs
-%{_sbindir}/mount.ceph
-%{_sbindir}/rcceph
+%{_sbindir}/ceph-create-keys
+%{_sbindir}/ceph-disk
+%{_sbindir}/ceph-disk-udev
 %{_libdir}/ceph
-%{_mandir}/man8/ceph*.8*
+%config(noreplace) %{_sysconfdir}/logrotate.d/ceph
+%config(noreplace) %{_sysconfdir}/bash_completion.d/rados
+%config(noreplace) %{_sysconfdir}/bash_completion.d/ceph
+%config(noreplace) %{_sysconfdir}/bash_completion.d/rbd
+%{_mandir}/man8/ceph-mon.8*
+%{_mandir}/man8/ceph-mds.8*
+%{_mandir}/man8/ceph-osd.8*
 %{_mandir}/man8/mkcephfs.8*
+%{_mandir}/man8/ceph-run.8*
+%{_mandir}/man8/ceph-syn.8*
 %{_mandir}/man8/crushtool.8*
 %{_mandir}/man8/osdmaptool.8*
 %{_mandir}/man8/monmaptool.8*
+%{_mandir}/man8/ceph-conf.8*
+%{_mandir}/man8/ceph.8*
+%{_mandir}/man8/cephfs.8*
 %{_mandir}/man8/mount.ceph.8*
 %{_mandir}/man8/rados.8*
 %{_mandir}/man8/rbd.8*
-%exclude %{_mandir}/man8/ceph-fuse.8*
-%{_mandir}/man8/librados-config.8*
+%{_mandir}/man8/ceph-authtool.8*
+%{_mandir}/man8/ceph-debugpack.8*
+%{_mandir}/man8/ceph-clsinfo.8*
+%{_mandir}/man8/ceph-dencoder.8*
+%{_mandir}/man8/ceph-rbdnamer.8*
+%{_mandir}/man8/ceph-rest-api.8.*
+%{_mandir}/man8/ceph-post-file.8.*
 %dir %{_localstatedir}/lib/ceph/
 %dir %{_localstatedir}/lib/ceph/tmp/
 %dir %{_localstatedir}/log/ceph/
-%ghost %dir %{_localstatedir}/run/ceph/
+%{_datadir}/ceph/id_dsa_drop.ceph.com
+%{_datadir}/ceph/id_dsa_drop.ceph.com.pub
+%{_datadir}/ceph/known_hosts_drop.ceph.com
+
+%files -n %{liberasure}
+%{_libdir}/erasure-code/libec_example.so.%{maj0}*
+%{_libdir}/erasure-code/libec_fail_to_initialize.so.%{maj0}*
+%{_libdir}/erasure-code/libec_fail_to_register.so.%{maj0}*
+%{_libdir}/erasure-code/libec_hangs.so.%{maj0}*
+%{_libdir}/erasure-code/libec_jerasure.so.%{major}*
+%{_libdir}/erasure-code/libec_missing_entry_point.so.%{maj0}*
 
 %files fuse
 %{_bindir}/ceph-fuse
 %{_bindir}/rbd-fuse
-%{_sbindir}/mount.fuse.ceph
+/sbin/mount.fuse.ceph
 %{_mandir}/man8/ceph-fuse.8*
 %{_mandir}/man8/rbd-fuse.8*
 
 %files radosgw
-%{_initrddir}/ceph-radosgw
+#% {_initrddir}/ceph-radosgw
 %{_bindir}/radosgw
 %{_bindir}/radosgw-admin
-%{_sbindir}/rcceph-radosgw
+#% {_sbindir}/rcceph-radosgw
+%{_sysconfdir}/bash_completion.d/radosgw-admin
 %{_mandir}/man8/radosgw.8*
 %{_mandir}/man8/radosgw-admin.8*
+%{_mandir}/man8/librados-config.8.*
 
 %files -n %{libcls}
 %dir %{_libdir}/rados-classes
@@ -232,6 +278,11 @@ fi
 %{_libdir}/rados-classes/libcls_kvs.so.%{major}*
 %{_libdir}/rados-classes/libcls_lock.so.%{major}*
 %{_libdir}/rados-classes/libcls_refcount.so.%{major}*
+%{_libdir}/rados-classes/libcls_version.so.%{major}*
+%{_libdir}/rados-classes/libcls_statelog.so.%{major}*
+%{_libdir}/rados-classes/libcls_replica*.so.%{major}*
+%{_libdir}/rados-classes/libcls_log.so.%{major}*
+%{_libdir}/rados-classes/libcls_hello.so.%{major}*
 
 %files -n %{librados}
 %{_libdir}/librados.so.%{maj2}*
@@ -244,8 +295,8 @@ fi
 
 %files -n %{devname}
 %dir %{_docdir}/ceph
-%{_docdir}/ceph/sample.ceph.conf
-%{_docdir}/ceph/sample.fetch_config
+#%{_docdir}/ceph/sample.ceph.conf
+#%{_docdir}/ceph/sample.fetch_config
 %dir %{_includedir}/cephfs
 %{_includedir}/cephfs/*
 %dir %{_includedir}/rados
@@ -255,13 +306,8 @@ fi
 %{_libdir}/libcephfs.so
 %{_libdir}/librbd.so
 %{_libdir}/librados.so
-%{_libdir}/rados-classes/libcls_rbd.so
-%{_libdir}/rados-classes/libcls_rgw.so
-%{_libdir}/rados-classes/libcls_kvs.so
-%{_libdir}/rados-classes/libcls_lock.so
-%{_libdir}/rados-classes/libcls_refcount.so
+%{_libdir}/rados-classes/*.so
+%{_libdir}/erasure-code/*.so
 
 %files -n python-ceph
-%{python_sitelib}/rados.py*
-%{python_sitelib}/rbd.py*
-
+%{python_sitelib}/*.py*
