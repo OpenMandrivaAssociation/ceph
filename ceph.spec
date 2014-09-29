@@ -7,24 +7,27 @@
 %define	liberasure	%mklibname erasure %{major}
 %define	libcls		%mklibname cls %{major}
 %define	librados	%mklibname rados %{maj2}
+%define	libradosstriper	%mklibname radosstriper %{major}
 %define	librbd		%mklibname rbd %{major}
 %define	devname		%mklibname ceph -d
 
 Summary:	User space components of the Ceph file system
 Name:		ceph
-Version:	0.72.2
-Release:	3
+Version:	0.85
+Release:	1
 License:	GPLv2
 Group:		System/Base
 Url:		http://ceph.com
 Source0:	http://ceph.com/download/%{name}-%{version}.tar.bz2
 Source1:	ceph.rpmlintrc
+Patch1:		ceph-0.85-boost1.56.patch
 
 BuildRequires:	boost-devel
 BuildRequires:	fcgi-devel
 BuildRequires:	keyutils-devel
 BuildRequires:	libaio-devel
 BuildRequires:	pkgconfig(atomic_ops)
+BuildRequires:	pkgconfig(blkid)
 BuildRequires:	pkgconfig(expat)
 BuildRequires:	pkgconfig(fuse)
 BuildRequires:	pkgconfig(libcurl)
@@ -101,6 +104,17 @@ developed as part of the Ceph distributed storage system. This is a
 shared library allowing applications to access the distributed object
 store using a simple file-like interface.
 
+%package -n %{libradosstriper}
+Summary:        RADOS distributed object store client library
+Group:          System/Libraries
+License:        LGPLv2
+
+%description -n %{libradosstriper}
+RADOS is a reliable, autonomic distributed object storage cluster
+developed as part of the Ceph distributed storage system. This is a
+shared library allowing applications to access the distributed object
+store using a simple file-like interface.
+
 %package -n %{librbd}
 Summary:	RADOS block device client library
 Group:		System/Libraries
@@ -121,6 +135,7 @@ Requires:	%{libcephfs} = %{version}-%{release}
 Requires:	%{libcls} = %{version}-%{release}
 Requires:	%{librados} = %{version}-%{release}
 Requires:	%{librbd} = %{version}-%{release}
+Requires:	%{libradosstriper} = %{version}-%{release}
 
 %description -n %{devname}
 This package contains libraries and headers needed to develop programs
@@ -137,6 +152,7 @@ object storage.
 
 %prep
 %setup -q
+%apply_patches
 
 %build
 sed -i 's!$(exec_prefix)!!g' src/Makefile.*
@@ -144,7 +160,8 @@ sed -i 's!$(exec_prefix)!!g' src/Makefile.*
 	--disable-static \
 	--with-radosgw \
 	--without-hadoop \
-	--without-tcmalloc
+	--without-tcmalloc \
+	--without-libxfs
 
 %make
 
@@ -181,6 +198,7 @@ fi
 %dir %{_sysconfdir}/ceph
 %{_bindir}/ceph
 %{_bindir}/cephfs
+%{_bindir}/cephfs-journal-tool
 %{_bindir}/ceph-conf
 %{_bindir}/ceph-clsinfo
 %{_bindir}/crushtool
@@ -192,6 +210,8 @@ fi
 %{_bindir}/ceph-mon
 %{_bindir}/ceph-mds
 %{_bindir}/ceph-osd
+%{_bindir}/ceph-brag
+%{_bindir}/ceph-crush-location
 %{_bindir}/ceph-rbdnamer
 %{_bindir}/librados-config
 %{_bindir}/rados
@@ -205,14 +225,15 @@ fi
 %{_bindir}/ceph-post-file
 %{_bindir}/ceph_filestore_tool
 %{_initrddir}/ceph
-/sbin/mkcephfs
 /sbin/mount.ceph
 %{_sbindir}/ceph-disk-activate
 %{_sbindir}/ceph-disk-prepare
 %{_sbindir}/ceph-create-keys
 %{_sbindir}/ceph-disk
 %{_sbindir}/ceph-disk-udev
-%{_libdir}/ceph
+%dir %{_libdir}/ceph
+%{_libdir}/ceph/ceph_common.sh
+%{_libexecdir}/ceph/ceph-osd-prestart.sh
 %config(noreplace) %{_sysconfdir}/logrotate.d/ceph
 %config(noreplace) %{_sysconfdir}/bash_completion.d/rados
 %config(noreplace) %{_sysconfdir}/bash_completion.d/ceph
@@ -220,7 +241,6 @@ fi
 %{_mandir}/man8/ceph-mon.8*
 %{_mandir}/man8/ceph-mds.8*
 %{_mandir}/man8/ceph-osd.8*
-%{_mandir}/man8/mkcephfs.8*
 %{_mandir}/man8/ceph-run.8*
 %{_mandir}/man8/ceph-syn.8*
 %{_mandir}/man8/crushtool.8*
@@ -247,12 +267,14 @@ fi
 %{_datadir}/ceph/known_hosts_drop.ceph.com
 
 %files -n %{liberasure}
-%{_libdir}/erasure-code/libec_example.so.%{maj0}*
-%{_libdir}/erasure-code/libec_fail_to_initialize.so.%{maj0}*
-%{_libdir}/erasure-code/libec_fail_to_register.so.%{maj0}*
-%{_libdir}/erasure-code/libec_hangs.so.%{maj0}*
-%{_libdir}/erasure-code/libec_jerasure.so.%{major}*
-%{_libdir}/erasure-code/libec_missing_entry_point.so.%{maj0}*
+%{_libdir}/ceph/erasure-code/libec_example.so.%{maj0}*
+%{_libdir}/ceph/erasure-code/libec_fail_to_initialize.so.%{maj0}*
+%{_libdir}/ceph/erasure-code/libec_fail_to_register.so.%{maj0}*
+%{_libdir}/ceph/erasure-code/libec_hangs.so.%{maj0}*
+%{_libdir}/ceph/erasure-code/libec_missing_entry_point.so.%{maj0}*
+%{_libdir}/ceph/erasure-code/libec_isa.so.%{maj2}*
+%{_libdir}/ceph/erasure-code/libec_jerasure*.so.%{maj2}*
+%{_libdir}/ceph/erasure-code/libec_test_jerasure*.so.%{maj0}*
 
 %files fuse
 %{_bindir}/ceph-fuse
@@ -273,19 +295,23 @@ fi
 
 %files -n %{libcls}
 %dir %{_libdir}/rados-classes
-%{_libdir}/rados-classes/libcls_rbd.so.%{major}*
-%{_libdir}/rados-classes/libcls_rgw.so.%{major}*
-%{_libdir}/rados-classes/libcls_kvs.so.%{major}*
-%{_libdir}/rados-classes/libcls_lock.so.%{major}*
-%{_libdir}/rados-classes/libcls_refcount.so.%{major}*
-%{_libdir}/rados-classes/libcls_version.so.%{major}*
-%{_libdir}/rados-classes/libcls_statelog.so.%{major}*
-%{_libdir}/rados-classes/libcls_replica*.so.%{major}*
-%{_libdir}/rados-classes/libcls_log.so.%{major}*
-%{_libdir}/rados-classes/libcls_hello.so.%{major}*
+%{_libdir}/rados-classes/libcls_rbd.so
+%{_libdir}/rados-classes/libcls_rgw.so
+%{_libdir}/rados-classes/libcls_kvs.so
+%{_libdir}/rados-classes/libcls_lock.so
+%{_libdir}/rados-classes/libcls_refcount.so
+%{_libdir}/rados-classes/libcls_version.so
+%{_libdir}/rados-classes/libcls_statelog.so
+%{_libdir}/rados-classes/libcls_replica*.so
+%{_libdir}/rados-classes/libcls_log.so
+%{_libdir}/rados-classes/libcls_hello.so
+%{_libdir}/rados-classes/libcls_user.so*
 
 %files -n %{librados}
 %{_libdir}/librados.so.%{maj2}*
+
+%files -n %{libradosstriper}
+%{_libdir}/libradosstriper.so.%{major}*
 
 %files -n %{librbd}
 %{_libdir}/librbd.so.%{major}*
@@ -301,13 +327,15 @@ fi
 %{_includedir}/cephfs/*
 %dir %{_includedir}/rados
 %{_includedir}/rados/*
+%dir %{_includedir}/radosstriper
+%{_includedir}/radosstriper/*
 %dir %{_includedir}/rbd
 %{_includedir}/rbd/*
 %{_libdir}/libcephfs.so
 %{_libdir}/librbd.so
 %{_libdir}/librados.so
-%{_libdir}/rados-classes/*.so
-%{_libdir}/erasure-code/*.so
+%{_libdir}/libradosstriper.so
+%{_libdir}/ceph/erasure-code/*.so
 
 %files -n python-ceph
-%{python_sitelib}/*.py*
+%{python3_sitelib}/*.py*
