@@ -35,6 +35,7 @@ BuildRequires:	pkgconfig(libedit)
 BuildRequires:	pkgconfig(nss)
 BuildRequires:	pkgconfig(uuid)
 BuildRequires:	pkgconfig(leveldb)
+BuildRequires:	pkgconfig(libudev)
 BuildRequires:	snappy-devel
 Requires(preun,post):	chkconfig
 
