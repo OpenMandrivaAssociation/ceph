@@ -37,6 +37,7 @@ BuildRequires:	pkgconfig(uuid)
 BuildRequires:	pkgconfig(leveldb)
 BuildRequires:	pkgconfig(libudev)
 BuildRequires:	snappy-devel
+BuildRequires:	yasm
 Requires(preun,post):	chkconfig
 
 %description
@@ -273,7 +274,9 @@ fi
 %{_libdir}/ceph/erasure-code/libec_fail_to_register.so.%{maj0}*
 %{_libdir}/ceph/erasure-code/libec_hangs.so.%{maj0}*
 %{_libdir}/ceph/erasure-code/libec_missing_entry_point.so.%{maj0}*
+%ifarch x86_64
 %{_libdir}/ceph/erasure-code/libec_isa.so.%{maj2}*
+%endif
 %{_libdir}/ceph/erasure-code/libec_jerasure*.so.%{maj2}*
 %{_libdir}/ceph/erasure-code/libec_test_jerasure*.so.%{maj0}*
 
