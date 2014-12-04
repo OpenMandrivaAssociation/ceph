@@ -14,7 +14,7 @@
 Summary:	User space components of the Ceph file system
 Name:		ceph
 Version:	0.85
-Release:	1
+Release:	2
 License:	GPLv2
 Group:		System/Base
 Url:		http://ceph.com
@@ -158,7 +158,7 @@ object storage.
 
 %build
 sed -i 's!$(exec_prefix)!!g' src/Makefile.*
-%configure2_5x \
+%configure \
 	--disable-static \
 	--with-radosgw \
 	--without-hadoop \
