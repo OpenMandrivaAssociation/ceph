@@ -157,6 +157,9 @@ object storage.
 %apply_patches
 
 %build
+export CC=gcc
+export CXX=g++
+
 sed -i 's!$(exec_prefix)!!g' src/Makefile.*
 %configure \
 	--disable-static \
