@@ -13,14 +13,13 @@
 
 Summary:	User space components of the Ceph file system
 Name:		ceph
-Version:	0.85
-Release:	4
+Version:	9.0.0
+Release:	1
 License:	GPLv2
 Group:		System/Base
 Url:		http://ceph.com
 Source0:	http://ceph.com/download/%{name}-%{version}.tar.bz2
 Source1:	ceph.rpmlintrc
-Patch1:		ceph-0.85-boost1.56.patch
 
 BuildRequires:	boost-devel
 BuildRequires:	fcgi-devel
