@@ -23,6 +23,7 @@ Source1:	ceph.rpmlintrc
 
 BuildRequires:	boost-devel
 BuildRequires:	fcgi-devel
+BuildRequires:	git
 BuildRequires:	keyutils-devel
 BuildRequires:	libaio-devel
 BuildRequires:	pkgconfig(atomic_ops)
