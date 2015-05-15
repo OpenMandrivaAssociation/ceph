@@ -166,7 +166,8 @@ sed -i 's!$(exec_prefix)!!g' src/Makefile.*
 	--with-radosgw \
 	--without-hadoop \
 	--without-tcmalloc \
-	--without-libxfs
+	--without-libxfs \
+        CXXFLAGS="$CXXFLAGS -DBOOST_VARIANT_USE_RELAXED_GET_BY_DEFAULT=1"
 
 %make
 
