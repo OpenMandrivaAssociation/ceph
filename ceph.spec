@@ -203,6 +203,10 @@ fi
 %files
 %doc README COPYING
 %dir %{_sysconfdir}/ceph
+%{_bindir}/ceph-objectstore-tool
+%{_bindir}/cephfs-table-tool
+%{_bindir}/rbd-replay
+%{_bindir}/rbd-replay-many
 %{_bindir}/ceph
 %{_bindir}/cephfs
 %{_bindir}/cephfs-journal-tool
@@ -226,11 +230,8 @@ fi
 %{_bindir}/ceph-debugpack
 %{_bindir}/ceph-coverage
 %{_bindir}/ceph-dencoder
-%{_bindir}/ceph_filestore_dump
 %{_bindir}/ceph-rest-api
-%{_bindir}/ceph_mon_store_converter
 %{_bindir}/ceph-post-file
-%{_bindir}/ceph_filestore_tool
 %{_initrddir}/ceph
 /sbin/mount.ceph
 %{_sbindir}/ceph-disk-activate
@@ -245,27 +246,6 @@ fi
 %config(noreplace) %{_sysconfdir}/bash_completion.d/rados
 %config(noreplace) %{_sysconfdir}/bash_completion.d/ceph
 %config(noreplace) %{_sysconfdir}/bash_completion.d/rbd
-%{_mandir}/man8/ceph-mon.8*
-%{_mandir}/man8/ceph-mds.8*
-%{_mandir}/man8/ceph-osd.8*
-%{_mandir}/man8/ceph-run.8*
-%{_mandir}/man8/ceph-syn.8*
-%{_mandir}/man8/crushtool.8*
-%{_mandir}/man8/osdmaptool.8*
-%{_mandir}/man8/monmaptool.8*
-%{_mandir}/man8/ceph-conf.8*
-%{_mandir}/man8/ceph.8*
-%{_mandir}/man8/cephfs.8*
-%{_mandir}/man8/mount.ceph.8*
-%{_mandir}/man8/rados.8*
-%{_mandir}/man8/rbd.8*
-%{_mandir}/man8/ceph-authtool.8*
-%{_mandir}/man8/ceph-debugpack.8*
-%{_mandir}/man8/ceph-clsinfo.8*
-%{_mandir}/man8/ceph-dencoder.8*
-%{_mandir}/man8/ceph-rbdnamer.8*
-%{_mandir}/man8/ceph-rest-api.8.*
-%{_mandir}/man8/ceph-post-file.8.*
 %dir %{_localstatedir}/lib/ceph/
 %dir %{_localstatedir}/lib/ceph/tmp/
 %dir %{_localstatedir}/log/ceph/
@@ -284,13 +264,14 @@ fi
 %endif
 %{_libdir}/ceph/erasure-code/libec_jerasure*.so.%{maj2}*
 %{_libdir}/ceph/erasure-code/libec_test_jerasure*.so.%{maj0}*
+%{_libdir}/ceph/erasure-code/libec_lrc.so.*
+%{_libdir}/ceph/erasure-code/libec_missing_version.so.*
+%{_libdir}/ceph/erasure-code/libec_shec.so.*
 
 %files fuse
 %{_bindir}/ceph-fuse
 %{_bindir}/rbd-fuse
 /sbin/mount.fuse.ceph
-%{_mandir}/man8/ceph-fuse.8*
-%{_mandir}/man8/rbd-fuse.8*
 
 %files radosgw
 #% {_initrddir}/ceph-radosgw
@@ -298,9 +279,6 @@ fi
 %{_bindir}/radosgw-admin
 #% {_sbindir}/rcceph-radosgw
 %{_sysconfdir}/bash_completion.d/radosgw-admin
-%{_mandir}/man8/radosgw.8*
-%{_mandir}/man8/radosgw-admin.8*
-%{_mandir}/man8/librados-config.8.*
 
 %files -n %{libcls}
 %dir %{_libdir}/rados-classes
@@ -348,3 +326,4 @@ fi
 
 %files -n python-ceph
 %{python3_sitelib}/*.py*
+%{python3_sitelib}/__pycache__/*
