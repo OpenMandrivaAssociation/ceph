@@ -13,12 +13,12 @@
 
 Summary:	User space components of the Ceph file system
 Name:		ceph
-Version:	9.0.0
-Release:	3
+Version:	9.2.0
+Release:	1
 License:	GPLv2
 Group:		System/Base
 Url:		http://ceph.com
-Source0:	http://ceph.com/download/%{name}-%{version}.tar.bz2
+Source0:	http://ceph.com/download/%{name}-%{version}.tar.gz
 Source1:	ceph.rpmlintrc
 Patch1:		ceph-9.0.0-make_check.patch
 BuildRequires:	boost-devel
@@ -164,10 +164,16 @@ autoreconf -fiv
 sed -i 's!$(exec_prefix)!!g' src/Makefile.*
 %configure \
 	--disable-static \
+	--with-systemdsystemunitdir=%{_unitdir} \
+	--with-nss \
+	--without-cryptopp \
 	--with-radosgw \
 	--without-hadoop \
 	--without-tcmalloc \
 	--without-libxfs \
+	--enable-client \
+	--enable-server \
+	--enable-gitversion \
         CXXFLAGS="$CXXFLAGS -DBOOST_VARIANT_USE_RELAXED_GET_BY_DEFAULT=1"
 
 %make
@@ -185,24 +191,17 @@ mkdir -p %{buildroot}%{_localstatedir}/log/ceph/stat
 mkdir -p %{buildroot}%{_sysconfdir}/ceph
 mkdir -p %{buildroot}%{_sysconfdir}/bash_completion.d
 
-%post
-/sbin/chkconfig --add ceph
-
-%preun
-if [ $1 = 0 ] ; then
-    /sbin/service ceph stop >/dev/null 2>&1
-    /sbin/chkconfig --del ceph
-fi
-
-%postun
-if [ "$1" -ge "1" ] ; then
-    /sbin/service ceph condrestart >/dev/null 2>&1 || :
-fi
-
+# udev rules
+install -m 0644 -D udev/50-rbd.rules %{buildroot}%{_udevrulesdir}/50-rbd.rules
+install -m 0644 -D udev/60-ceph-partuuid-workaround.rules %{buildroot}%{_udevrulesdir}/60-ceph-partuuid-workaround.rules
 
 %files
 %doc README COPYING
 %dir %{_sysconfdir}/ceph
+%{_tmpfilesdir}/*.conf
+%{_unitdir}/*.service
+%{_unitdir}/*.target
+%{_udevrulesdir}/*.rules
 %{_bindir}/ceph-objectstore-tool
 %{_bindir}/cephfs-table-tool
 %{_bindir}/rbd-replay
