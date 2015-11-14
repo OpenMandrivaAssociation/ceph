@@ -20,7 +20,6 @@ Group:		System/Base
 Url:		http://ceph.com
 Source0:	http://ceph.com/download/%{name}-%{version}.tar.gz
 Source1:	ceph.rpmlintrc
-Patch1:		ceph-9.0.0-make_check.patch
 BuildRequires:	boost-devel
 BuildRequires:	fcgi-devel
 BuildRequires:	git
