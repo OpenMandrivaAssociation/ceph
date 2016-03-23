@@ -1,4 +1,5 @@
 %define _disable_ld_no_undefined 1
+%define _disable_rebuild_configure 1
 
 %define	maj0	0
 %define	major	1
@@ -13,13 +14,14 @@
 
 Summary:	User space components of the Ceph file system
 Name:		ceph
-Version:	9.2.0
+Version:	9.2.1
 Release:	1
 License:	GPLv2
 Group:		System/Base
 Url:		http://ceph.com
 Source0:	http://ceph.com/download/%{name}-%{version}.tar.gz
 Source1:	ceph.rpmlintrc
+Patch1:		ceph-9.2.1-py3.patch
 BuildRequires:	boost-devel
 BuildRequires:	fcgi-devel
 BuildRequires:	git
@@ -158,7 +160,6 @@ object storage.
 %build
 export CC=gcc
 export CXX=g++
-autoreconf -fiv
 
 sed -i 's!$(exec_prefix)!!g' src/Makefile.*
 %configure \

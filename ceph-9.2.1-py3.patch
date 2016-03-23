@@ -1,0 +1,11 @@
+--- a/man/conf.py.orig	2016-03-23 16:39:58.273156654 +0000
++++ a/man/conf.py	2016-03-23 16:40:04.928156229 +0000
+@@ -9,7 +9,7 @@
+ 
+ 
+ def _get_description(fname, base):
+-    with file(fname) as f:
++    with open(fname) as f:
+         one = None
+         while True:
+             line = f.readline().rstrip('\n')
