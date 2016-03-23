@@ -37,6 +37,7 @@ BuildRequires:	pkgconfig(nss)
 BuildRequires:	pkgconfig(uuid)
 BuildRequires:	pkgconfig(leveldb)
 BuildRequires:	pkgconfig(libudev)
+BuildRequires:	pkgconfig(systemd)
 BuildRequires:	python-setuptools
 BuildRequires:	snappy-devel
 BuildRequires:	yasm
@@ -199,19 +200,20 @@ install -m 0644 -D udev/60-ceph-partuuid-workaround.rules %{buildroot}%{_udevrul
 %files
 %doc README COPYING
 %dir %{_sysconfdir}/ceph
-%{_tmpfilesdir}/*.conf
+%{_udevrulesdir}/*.rules
 %{_unitdir}/*.service
 %{_unitdir}/*.target
-%{_udevrulesdir}/*.rules
 %{_bindir}/ceph-objectstore-tool
 %{_bindir}/cephfs-table-tool
 %{_bindir}/rbd-replay
 %{_bindir}/rbd-replay-many
 %{_bindir}/ceph
 %{_bindir}/cephfs
+%{_bindir}/cephfs-data-scan
 %{_bindir}/cephfs-journal-tool
 %{_bindir}/ceph-conf
 %{_bindir}/ceph-clsinfo
+%{_bindir}/ceph-detect-init
 %{_bindir}/crushtool
 %{_bindir}/monmaptool
 %{_bindir}/osdmaptool
@@ -226,7 +228,9 @@ install -m 0644 -D udev/60-ceph-partuuid-workaround.rules %{buildroot}%{_udevrul
 %{_bindir}/ceph-rbdnamer
 %{_bindir}/librados-config
 %{_bindir}/rados
+%{_bindir}/radosgw-object-expirer
 %{_bindir}/rbd
+%{_bindir}/rbdmap
 %{_bindir}/ceph-debugpack
 %{_bindir}/ceph-coverage
 %{_bindir}/ceph-dencoder
@@ -234,8 +238,6 @@ install -m 0644 -D udev/60-ceph-partuuid-workaround.rules %{buildroot}%{_udevrul
 %{_bindir}/ceph-post-file
 %{_initrddir}/ceph
 /sbin/mount.ceph
-%{_sbindir}/ceph-disk-activate
-%{_sbindir}/ceph-disk-prepare
 %{_sbindir}/ceph-create-keys
 %{_sbindir}/ceph-disk
 %{_sbindir}/ceph-disk-udev
@@ -254,19 +256,8 @@ install -m 0644 -D udev/60-ceph-partuuid-workaround.rules %{buildroot}%{_udevrul
 %{_datadir}/ceph/known_hosts_drop.ceph.com
 
 %files -n %{liberasure}
-%{_libdir}/ceph/erasure-code/libec_example.so.%{maj0}*
-%{_libdir}/ceph/erasure-code/libec_fail_to_initialize.so.%{maj0}*
-%{_libdir}/ceph/erasure-code/libec_fail_to_register.so.%{maj0}*
-%{_libdir}/ceph/erasure-code/libec_hangs.so.%{maj0}*
-%{_libdir}/ceph/erasure-code/libec_missing_entry_point.so.%{maj0}*
-%ifarch x86_64
-%{_libdir}/ceph/erasure-code/libec_isa.so.%{maj2}*
-%endif
-%{_libdir}/ceph/erasure-code/libec_jerasure*.so.%{maj2}*
-%{_libdir}/ceph/erasure-code/libec_test_jerasure*.so.%{maj0}*
-%{_libdir}/ceph/erasure-code/libec_lrc.so.*
-%{_libdir}/ceph/erasure-code/libec_missing_version.so.*
-%{_libdir}/ceph/erasure-code/libec_shec.so.*
+%{_libdir}/ceph/erasure-code
+%exclude %{_libdir}/ceph/erasure-code/*.so
 
 %files fuse
 %{_bindir}/ceph-fuse
@@ -281,18 +272,7 @@ install -m 0644 -D udev/60-ceph-partuuid-workaround.rules %{buildroot}%{_udevrul
 %{_sysconfdir}/bash_completion.d/radosgw-admin
 
 %files -n %{libcls}
-%dir %{_libdir}/rados-classes
-%{_libdir}/rados-classes/libcls_rbd.so
-%{_libdir}/rados-classes/libcls_rgw.so
-%{_libdir}/rados-classes/libcls_kvs.so
-%{_libdir}/rados-classes/libcls_lock.so
-%{_libdir}/rados-classes/libcls_refcount.so
-%{_libdir}/rados-classes/libcls_version.so
-%{_libdir}/rados-classes/libcls_statelog.so
-%{_libdir}/rados-classes/libcls_replica*.so
-%{_libdir}/rados-classes/libcls_log.so
-%{_libdir}/rados-classes/libcls_hello.so
-%{_libdir}/rados-classes/libcls_user.so*
+%{_libdir}/rados-classes
 
 %files -n %{librados}
 %{_libdir}/librados.so.%{maj2}*
@@ -325,5 +305,6 @@ install -m 0644 -D udev/60-ceph-partuuid-workaround.rules %{buildroot}%{_udevrul
 %{_libdir}/ceph/erasure-code/*.so
 
 %files -n python-ceph
+%{python3_sitelib}/ceph_detect_init*
 %{python3_sitelib}/*.py*
 %{python3_sitelib}/__pycache__/*
