@@ -37,6 +37,7 @@ BuildRequires:	pkgconfig(nss)
 BuildRequires:	pkgconfig(uuid)
 BuildRequires:	pkgconfig(leveldb)
 BuildRequires:	pkgconfig(libudev)
+BuildRequires:	python-setuptools
 BuildRequires:	snappy-devel
 BuildRequires:	yasm
 Requires(preun,post):	chkconfig
