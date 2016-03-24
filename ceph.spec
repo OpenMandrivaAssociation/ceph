@@ -243,6 +243,7 @@ install -m 0644 -D udev/60-ceph-partuuid-workaround.rules %{buildroot}%{_udevrul
 %{_sbindir}/ceph-disk-udev
 %dir %{_libdir}/ceph
 %{_libdir}/ceph/ceph_common.sh
+%{_libdir}/ceph/ceph-monstore-update-crush.sh
 %{_libexecdir}/ceph/ceph-osd-prestart.sh
 %config(noreplace) %{_sysconfdir}/logrotate.d/ceph
 %config(noreplace) %{_sysconfdir}/bash_completion.d/rados
