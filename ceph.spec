@@ -42,6 +42,7 @@ BuildRequires:	pkgconfig(leveldb)
 BuildRequires:	pkgconfig(libudev)
 BuildRequires:	pkgconfig(systemd)
 BuildRequires:	python-setuptools
+BuildRequires:	python-cython
 BuildRequires:	snappy-devel
 BuildRequires:	yasm
 
