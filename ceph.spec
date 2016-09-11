@@ -168,8 +168,8 @@ object storage.
 %global optflags %optflags --param ggc-min-expand=20 --param ggc-min-heapsize=32768
 %endif
 
-#export CC=gcc
-#export CXX=g++
+export CC=gcc
+export CXX=g++
 
 sed -i 's!$(exec_prefix)!!g' src/Makefile.*
 %configure \
