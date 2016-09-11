@@ -1,27 +1,30 @@
 %define _disable_ld_no_undefined 1
 %define _disable_rebuild_configure 1
 
-%define	maj0	0
-%define	major	1
-%define	maj2	2
-%define	libcephfs	%mklibname cephfs %{major}
-%define	liberasure	%mklibname erasure %{major}
-%define	libcls		%mklibname cls %{major}
-%define	librados	%mklibname rados %{maj2}
-%define	libradosstriper	%mklibname radosstriper %{major}
-%define	librbd		%mklibname rbd %{major}
-%define	devname		%mklibname ceph -d
+%define maj0 0
+%define major 1
+%define maj2 2
+%define libcephfs %mklibname cephfs %{major}
+%define liberasure %mklibname erasure %{major}
+%define libcls %mklibname cls %{major}
+%define librados %mklibname rados %{maj2}
+%define libradosstriper %mklibname radosstriper %{major}
+%define librbd %mklibname rbd %{major}
+%define devname %mklibname ceph -d
 
 Summary:	User space components of the Ceph file system
 Name:		ceph
-Version:	9.2.1
-Release:	2
+Version:	10.2.2
+Release:	1
 License:	GPLv2
 Group:		System/Base
 Url:		http://ceph.com
 Source0:	http://ceph.com/download/%{name}-%{version}.tar.gz
 Source1:	ceph.rpmlintrc
-Patch1:		ceph-9.2.1-py3.patch
+Patch0:		ceph-9.2.1-py3.patch
+Patch1:		0001-Disable-erasure_codelib-neon-build.patch
+Patch2:		0002-Do-not-use-momit-leaf-frame-pointer-flag.patch
+Patch3:		0003-fix-tcmalloc-handling-in-spec-file.patch
 BuildRequires:	boost-devel
 BuildRequires:	fcgi-devel
 BuildRequires:	git
@@ -159,13 +162,18 @@ object storage.
 %apply_patches
 
 %build
-export CC=gcc
-export CXX=g++
+# (tpg) try to reduce memory when building on arm
+%ifarch %{armx}
+%global optflags %optflags --param ggc-min-expand=20 --param ggc-min-heapsize=32768
+%endif
+
+#export CC=gcc
+#export CXX=g++
 
 sed -i 's!$(exec_prefix)!!g' src/Makefile.*
 %configure \
 	--disable-static \
-	--with-systemdsystemunitdir=%{_unitdir} \
+	--with-systemdsystemunitdir=%{_systemunitdir} \
 	--with-nss \
 	--without-cryptopp \
 	--with-radosgw \
@@ -200,8 +208,8 @@ install -m 0644 -D udev/60-ceph-partuuid-workaround.rules %{buildroot}%{_udevrul
 %doc README COPYING
 %dir %{_sysconfdir}/ceph
 %{_udevrulesdir}/*.rules
-%{_unitdir}/*.service
-%{_unitdir}/*.target
+%{_systemunitdir}/*.service
+%{_systemunitdir}/*.target
 %{_bindir}/ceph-objectstore-tool
 %{_bindir}/cephfs-table-tool
 %{_bindir}/rbd-replay
