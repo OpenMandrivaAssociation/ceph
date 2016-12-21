@@ -24,7 +24,6 @@ Source1:	ceph.rpmlintrc
 Patch0:		ceph-9.2.1-py3.patch
 Patch1:		0001-Disable-erasure_codelib-neon-build.patch
 #Patch2:		0002-Do-not-use-momit-leaf-frame-pointer-flag.patch
-Patch3:		0003-fix-tcmalloc-handling-in-spec-file.patch
 BuildRequires:	boost-devel
 BuildRequires:	fcgi-devel
 BuildRequires:	git
