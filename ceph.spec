@@ -42,6 +42,7 @@ BuildRequires:	pkgconfig(libudev)
 BuildRequires:	pkgconfig(systemd)
 BuildRequires:	python-setuptools
 BuildRequires:	python-cython
+BuildRequires:	python-virtualenv
 BuildRequires:	snappy-devel
 BuildRequires:	yasm
 
