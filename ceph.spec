@@ -43,6 +43,9 @@ BuildRequires:	pkgconfig(systemd)
 BuildRequires:	python-setuptools
 BuildRequires:	python-cython
 BuildRequires:	python-virtualenv
+BuildRequires:	python-nose
+BuildRequires:	python-requests
+BuildRequires:	python-sphinx
 BuildRequires:	python-pip
 BuildRequires:	snappy-devel
 BuildRequires:	yasm
