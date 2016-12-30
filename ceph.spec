@@ -1,5 +1,6 @@
 %define _disable_ld_no_undefined 1
 %define _disable_rebuild_configure 1
+%define _disable_lto 1
 
 %define maj0 0
 %define major 1
@@ -10,6 +11,7 @@
 %define librados %mklibname rados %{maj2}
 %define libradosstriper %mklibname radosstriper %{major}
 %define librbd %mklibname rbd %{major}
+%define librgw %mklibname rgw %{maj2}
 %define devname %mklibname ceph -d
 
 Summary:	User space components of the Ceph file system
@@ -138,6 +140,15 @@ RADOS, a reliable, autonomic distributed object storage cluster
 developed as part of the Ceph distributed storage system. This is a
 shared library allowing applications to manage these block devices.
 
+%package -n %{librgw}
+Summary:        RADOS gateway client library
+Group:          System/Libraries
+License:        LGPLv2
+
+%description -n %{librgw}
+This package provides a library implementation of the RADOS gateway
+(distributed object store with S3 and Swift personalities).
+
 %package -n %{devname}
 Summary:	Ceph headers
 Group:		Development/C
@@ -148,6 +159,7 @@ Requires:	%{libcls} = %{version}-%{release}
 Requires:	%{librados} = %{version}-%{release}
 Requires:	%{librbd} = %{version}-%{release}
 Requires:	%{libradosstriper} = %{version}-%{release}
+Requires:	%{librgw} = %{version}-%{release}
 
 %description -n %{devname}
 This package contains libraries and headers needed to develop programs
@@ -188,8 +200,8 @@ sed -i 's!$(exec_prefix)!!g' src/Makefile.*
 	--enable-client \
 	--enable-server \
 	--enable-gitversion \
-        CXXFLAGS="$CXXFLAGS -DBOOST_VARIANT_USE_RELAXED_GET_BY_DEFAULT=1"
-
+        CXXFLAGS="$CXXFLAGS -DBOOST_VARIANT_USE_RELAXED_GET_BY_DEFAULT=1" \
+	LIBS=-lldap
 %make
 
 %install
@@ -207,7 +219,7 @@ mkdir -p %{buildroot}%{_sysconfdir}/bash_completion.d
 
 # udev rules
 install -m 0644 -D udev/50-rbd.rules %{buildroot}%{_udevrulesdir}/50-rbd.rules
-install -m 0644 -D udev/60-ceph-partuuid-workaround.rules %{buildroot}%{_udevrulesdir}/60-ceph-partuuid-workaround.rules
+install -m 0644 -D udev/60-ceph-by-parttypeuuid.rules %{buildroot}%{_udevrulesdir}/60-ceph-by-parttypeuuid.rules
 
 %files
 %doc README COPYING
@@ -225,6 +237,7 @@ install -m 0644 -D udev/60-ceph-partuuid-workaround.rules %{buildroot}%{_udevrul
 %{_bindir}/cephfs-journal-tool
 %{_bindir}/ceph-conf
 %{_bindir}/ceph-clsinfo
+%{_bindir}/ceph-bluefs-tool
 %{_bindir}/ceph-detect-init
 %{_bindir}/crushtool
 %{_bindir}/monmaptool
@@ -241,7 +254,10 @@ install -m 0644 -D udev/60-ceph-partuuid-workaround.rules %{buildroot}%{_udevrul
 %{_bindir}/librados-config
 %{_bindir}/rados
 %{_bindir}/radosgw-object-expirer
+%{_bindir}/radosgw-token
 %{_bindir}/rbd
+%{_bindir}/rbd-mirror
+%{_bindir}/rbd-nbd
 %{_bindir}/rbdmap
 %{_bindir}/ceph-debugpack
 %{_bindir}/ceph-coverage
@@ -249,12 +265,12 @@ install -m 0644 -D udev/60-ceph-partuuid-workaround.rules %{buildroot}%{_udevrul
 %{_bindir}/ceph-rest-api
 %{_bindir}/ceph-post-file
 %{_initrddir}/ceph
-/sbin/mount.ceph
+%{_sbindir}/mount.ceph
 %{_sbindir}/ceph-create-keys
 %{_sbindir}/ceph-disk
 %{_sbindir}/ceph-disk-udev
 %dir %{_libdir}/ceph
-%{_libdir}/ceph/ceph_common.sh
+%{_libexecdir}/ceph/ceph_common.sh
 %{_libdir}/ceph/ceph-monstore-update-crush.sh
 %{_libexecdir}/ceph/ceph-osd-prestart.sh
 %config(noreplace) %{_sysconfdir}/logrotate.d/ceph
@@ -264,9 +280,11 @@ install -m 0644 -D udev/60-ceph-partuuid-workaround.rules %{buildroot}%{_udevrul
 %dir %{_localstatedir}/lib/ceph/
 %dir %{_localstatedir}/lib/ceph/tmp/
 %dir %{_localstatedir}/log/ceph/
-%{_datadir}/ceph/id_dsa_drop.ceph.com
-%{_datadir}/ceph/id_dsa_drop.ceph.com.pub
+%{_datadir}/ceph/id_rsa_drop.ceph.com
+%{_datadir}/ceph/id_rsa_drop.ceph.com.pub
 %{_datadir}/ceph/known_hosts_drop.ceph.com
+%{_libdir}/ceph/compressor
+%exclude %{_libdir}/ceph/compressor/*.so
 
 %files -n %{liberasure}
 %{_libdir}/ceph/erasure-code
@@ -275,7 +293,7 @@ install -m 0644 -D udev/60-ceph-partuuid-workaround.rules %{buildroot}%{_udevrul
 %files fuse
 %{_bindir}/ceph-fuse
 %{_bindir}/rbd-fuse
-/sbin/mount.fuse.ceph
+%{_sbindir}/mount.fuse.ceph
 
 %files radosgw
 #% {_initrddir}/ceph-radosgw
@@ -299,6 +317,9 @@ install -m 0644 -D udev/60-ceph-partuuid-workaround.rules %{buildroot}%{_udevrul
 %files -n %{libcephfs}
 %{_libdir}/libcephfs.so.%{major}*
 
+%files -n %{librgw}
+%{_libdir}/librgw.so.%{maj2}*
+
 %files -n %{devname}
 %dir %{_docdir}/ceph
 #%{_docdir}/ceph/sample.ceph.conf
@@ -315,9 +336,15 @@ install -m 0644 -D udev/60-ceph-partuuid-workaround.rules %{buildroot}%{_udevrul
 %{_libdir}/librbd.so
 %{_libdir}/librados.so
 %{_libdir}/libradosstriper.so
+%{_libdir}/librgw.so
 %{_libdir}/ceph/erasure-code/*.so
+%{_libdir}/ceph/compressor/*.so
 
 %files -n python-ceph
 %{python3_sitelib}/ceph_detect_init*
 %{python3_sitelib}/*.py*
 %{python3_sitelib}/__pycache__/*
+%{python3_sitelib}/ceph_disk*
+%{python3_sitearch}/cephfs*
+%{python3_sitearch}/rados*
+%{python3_sitearch}/rbd*
