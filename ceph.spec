@@ -184,6 +184,9 @@ object storage.
 %global optflags %optflags --param ggc-min-expand=20 --param ggc-min-heapsize=32768
 %endif
 
+# Decrease debuginfo verbosity to reduce memory consumption even more
+%global optflags `echo %optflags | sed -e 's/-gdwarf-4 /-g1 /'`
+
 export CC=gcc
 export CXX=g++
 
