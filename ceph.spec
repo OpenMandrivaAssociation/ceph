@@ -288,6 +288,38 @@ install -m 0644 -D udev/60-ceph-by-parttypeuuid.rules %{buildroot}%{_udevrulesdi
 %{_datadir}/ceph/known_hosts_drop.ceph.com
 %{_libdir}/ceph/compressor
 %exclude %{_libdir}/ceph/compressor/*.so
+%_mandir/man8/ceph-authtool.8*
+%_mandir/man8/ceph-clsinfo.8*
+%_mandir/man8/ceph-conf.8*
+%_mandir/man8/ceph-create-keys.8*
+%_mandir/man8/ceph-debugpack.8*
+%_mandir/man8/ceph-dencoder.8*
+%_mandir/man8/ceph-deploy.8*
+%_mandir/man8/ceph-detect-init.8*
+%_mandir/man8/ceph-disk.8*
+%_mandir/man8/ceph-mds.8*
+%_mandir/man8/ceph-mon.8*
+%_mandir/man8/ceph-osd.8*
+%_mandir/man8/ceph-post-file.8*
+%_mandir/man8/ceph-rbdnamer.8*
+%_mandir/man8/ceph-rest-api.8*
+%_mandir/man8/ceph-run.8*
+%_mandir/man8/ceph-syn.8*
+%_mandir/man8/ceph.8*
+%_mandir/man8/cephfs.8*
+%_mandir/man8/crushtool.8*
+%_mandir/man8/librados-config.8*
+%_mandir/man8/monmaptool.8*
+%_mandir/man8/mount.ceph.8*
+%_mandir/man8/osdmaptool.8*
+%_mandir/man8/rados.8*
+%_mandir/man8/rbd-mirror.8*
+%_mandir/man8/rbd-nbd.8*
+%_mandir/man8/rbd-replay-many.8*
+%_mandir/man8/rbd-replay-prep.8*
+%_mandir/man8/rbd-replay.8*
+%_mandir/man8/rbd.8*
+%_mandir/man8/rbdmap.8*
 
 %files -n %{liberasure}
 %{_libdir}/ceph/erasure-code
@@ -296,12 +328,16 @@ install -m 0644 -D udev/60-ceph-by-parttypeuuid.rules %{buildroot}%{_udevrulesdi
 %files fuse
 %{_bindir}/ceph-fuse
 %{_bindir}/rbd-fuse
+%_mandir/man8/ceph-fuse.8*
+%_mandir/man8/rbd-fuse.8*
 %{_sbindir}/mount.fuse.ceph
 
 %files radosgw
 #% {_initrddir}/ceph-radosgw
 %{_bindir}/radosgw
 %{_bindir}/radosgw-admin
+%_mandir/man8/radosgw-admin.8*
+%_mandir/man8/radosgw.8*
 #% {_sbindir}/rcceph-radosgw
 %{_sysconfdir}/bash_completion.d/radosgw-admin
 
