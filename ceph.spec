@@ -16,16 +16,16 @@
 
 Summary:	User space components of the Ceph file system
 Name:		ceph
-Version:	10.2.5
+Version:	10.2.7
 Release:	1
 License:	GPLv2
 Group:		System/Base
 Url:		http://ceph.com
-Source0:	http://ceph.com/download/%{name}-%{version}.tar.gz
+Source0:	http://download.ceph.com/tarballs/%{name}-%{version}.tar.gz
 Source1:	ceph.rpmlintrc
 Patch0:		ceph-9.2.1-py3.patch
-Patch1:		0001-Disable-erasure_codelib-neon-build.patch
-#Patch2:		0002-Do-not-use-momit-leaf-frame-pointer-flag.patch
+Patch1:		http://pkgs.fedoraproject.org/cgit/rpms/ceph.git/plain/0001-Disable-erasure_codelib-neon-build.patch
+Patch2:		http://pkgs.fedoraproject.org/cgit/rpms/ceph.git/plain/0003-librbd-Journal-include-WorkQueue-since-we-use-it.patch
 BuildRequires:	boost-devel
 BuildRequires:	fcgi-devel
 BuildRequires:	git
@@ -187,8 +187,8 @@ object storage.
 # Decrease debuginfo verbosity to reduce memory consumption even more
 %global optflags `echo %optflags | sed -e 's/-gdwarf-4 /-g1 /'`
 
-export CC=gcc
-export CXX=g++
+#export CC=gcc
+#export CXX=g++
 
 sed -i 's!$(exec_prefix)!!g' src/Makefile.*
 %configure \
