@@ -187,8 +187,8 @@ object storage.
 # Decrease debuginfo verbosity to reduce memory consumption even more
 %global optflags `echo %optflags | sed -e 's/-gdwarf-4 /-g1 /'`
 
-#export CC=gcc
-#export CXX=g++
+export CC=gcc
+export CXX=g++
 
 sed -i 's!$(exec_prefix)!!g' src/Makefile.*
 %configure \
