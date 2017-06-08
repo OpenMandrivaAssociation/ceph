@@ -5,8 +5,7 @@
 %define maj0 0
 %define major 1
 %define maj2 2
-%define libcephfs %mklibname cephfs %{major}
-%define liberasure %mklibname erasure %{major}
+%define libcephfs %mklibname cephfs %{maj2}
 %define libcls %mklibname cls %{major}
 %define librados %mklibname rados %{maj2}
 %define libradosstriper %mklibname radosstriper %{major}
@@ -16,19 +15,17 @@
 
 Summary:	User space components of the Ceph file system
 Name:		ceph
-Version:	10.2.7
+Version:	12.0.3
 Release:	1
 License:	GPLv2
 Group:		System/Base
 Url:		http://ceph.com
 Source0:	http://download.ceph.com/tarballs/%{name}-%{version}.tar.gz
 Source1:	ceph.rpmlintrc
-Patch0:		ceph-9.2.1-py3.patch
-Patch1:		http://pkgs.fedoraproject.org/cgit/rpms/ceph.git/plain/0001-Disable-erasure_codelib-neon-build.patch
-Patch2:		http://pkgs.fedoraproject.org/cgit/rpms/ceph.git/plain/0003-librbd-Journal-include-WorkQueue-since-we-use-it.patch
 BuildRequires:	boost-devel
 BuildRequires:	fcgi-devel
-BuildRequires:	git
+BuildRequires:	git-core
+BuildRequires:	cmake
 BuildRequires:	keyutils-devel
 BuildRequires:	libaio-devel
 BuildRequires:	pkgconfig(atomic_ops)
@@ -42,6 +39,7 @@ BuildRequires:	pkgconfig(uuid)
 BuildRequires:	pkgconfig(leveldb)
 BuildRequires:	pkgconfig(libudev)
 BuildRequires:	pkgconfig(systemd)
+BuildRequires:	pkgconfig(babeltrace)
 BuildRequires:	python-setuptools
 BuildRequires:	python-cython
 BuildRequires:	python-virtualenv
@@ -51,6 +49,12 @@ BuildRequires:	python-sphinx
 BuildRequires:	python-pip
 BuildRequires:	snappy-devel
 BuildRequires:	yasm
+Obsoletes: %mklibname erasure 1
+
+%libpackage os_tp 1
+%libpackage osd_tp 1
+%libpackage rados_tp 2
+%libpackage rbd_tp 1
 
 %description
 Ceph is a distributed network file system designed to provide excellent
@@ -80,17 +84,6 @@ Group:		System/Libraries
 License:	LGPLv2
 
 %description -n %{libcephfs}
-Ceph is a distributed network file system designed to provide excellent
-performance, reliability, and scalability. This is a shared library
-allowing applications to access a Ceph distributed file system via a
-POSIX-like interface.
-
-%package -n %{liberasure}
-Summary:	Ceph distributed file system client library
-Group:		System/Libraries
-License:	LGPLv2
-
-%description -n %{liberasure}
 Ceph is a distributed network file system designed to provide excellent
 performance, reliability, and scalability. This is a shared library
 allowing applications to access a Ceph distributed file system via a
@@ -174,6 +167,15 @@ License:	LGPLv2
 This package contains Python libraries for interacting with Cephs RADOS
 object storage.
 
+%package -n python2-ceph
+Summary:	Python 2.x libraries for the Ceph distributed filesystem
+Group:		System/Libraries
+License:	LGPLv2
+
+%description -n python2-ceph
+This package contains Python 2.x libraries for interacting with Cephs RADOS
+object storage.
+
 %prep
 %setup -q
 %apply_patches
@@ -190,43 +192,42 @@ object storage.
 export CC=gcc
 export CXX=g++
 
-sed -i 's!$(exec_prefix)!!g' src/Makefile.*
-%configure \
-	--disable-static \
-	--with-systemdsystemunitdir=%{_systemunitdir} \
-	--with-nss \
-	--without-cryptopp \
-	--with-radosgw \
-	--without-hadoop \
-	--without-tcmalloc \
-	--without-libxfs \
-	--enable-client \
-	--enable-server \
-	--enable-gitversion \
-        CXXFLAGS="$CXXFLAGS -DBOOST_VARIANT_USE_RELAXED_GET_BY_DEFAULT=1" \
-	LIBS=-lldap
+%cmake \
+	-DBUILD_SHARED_LIBS:BOOL=ON \
+	-DWITH_CEPHFS:BOOL=ON \
+	-DWITH_SYSTEMD:BOOL=ON \
+	-DWITH_SYSTEM_BOOST:BOOL=ON \
+	-DWITH_PYTHON3:BOOL=ON
 %make
 
 %install
-%makeinstall_std
-find %{buildroot} -type f -name "*.la" -exec rm -f {} ';'
-find %{buildroot} -type f -name "*.a" -exec rm -f {} ';'
-install -D src/init-ceph %{buildroot}%{_initrddir}/ceph
+%makeinstall_std -C build
+
+mkdir -p %{buildroot}/lib
+mv %{buildroot}%{_libexecdir}/systemd %{buildroot}/lib/
+
+mv %{buildroot}%{_prefix}/etc %{buildroot}
+
 chmod 0644 %{buildroot}%{_docdir}/ceph/sample.ceph.conf
 install -m 0644 -D src/logrotate.conf %{buildroot}%{_sysconfdir}/logrotate.d/ceph
-mkdir -p %{buildroot}%{_localstatedir}/lib/ceph/tmp/
-mkdir -p %{buildroot}%{_localstatedir}/log/ceph/
-mkdir -p %{buildroot}%{_localstatedir}/log/ceph/stat
-mkdir -p %{buildroot}%{_sysconfdir}/ceph
-mkdir -p %{buildroot}%{_sysconfdir}/bash_completion.d
 
 # udev rules
-install -m 0644 -D udev/50-rbd.rules %{buildroot}%{_udevrulesdir}/50-rbd.rules
-install -m 0644 -D udev/60-ceph-by-parttypeuuid.rules %{buildroot}%{_udevrulesdir}/60-ceph-by-parttypeuuid.rules
+mkdir -p %{buildroot}%{_udevrulesdir}
+install -m 0644 -D udev/*.rules %{buildroot}%{_udevrulesdir}/
+
+# Probably not needed with systemd...
+rm -rf %{buildroot}%{_sysconfdir}/init.d
+
+# Tests that shouldn't be required post-install
+# and that drag in a slew of dependencies...
+rm -f %{buildroot}%{_bindir}/dmclock-*tests \
+	%{buildroot}%{_bindir}/ceph_test_*
 
 %files
 %doc README COPYING
-%dir %{_sysconfdir}/ceph
+%{_sysconfdir}/bash_completion.d/ceph
+%{_sysconfdir}/bash_completion.d/rados
+%{_sysconfdir}/bash_completion.d/rbd
 %{_udevrulesdir}/*.rules
 %{_systemunitdir}/*.service
 %{_systemunitdir}/*.target
@@ -235,12 +236,10 @@ install -m 0644 -D udev/60-ceph-by-parttypeuuid.rules %{buildroot}%{_udevrulesdi
 %{_bindir}/rbd-replay
 %{_bindir}/rbd-replay-many
 %{_bindir}/ceph
-%{_bindir}/cephfs
 %{_bindir}/cephfs-data-scan
 %{_bindir}/cephfs-journal-tool
 %{_bindir}/ceph-conf
 %{_bindir}/ceph-clsinfo
-%{_bindir}/ceph-bluefs-tool
 %{_bindir}/ceph-detect-init
 %{_bindir}/crushtool
 %{_bindir}/monmaptool
@@ -251,6 +250,36 @@ install -m 0644 -D udev/60-ceph-by-parttypeuuid.rules %{buildroot}%{_udevrulesdi
 %{_bindir}/ceph-mon
 %{_bindir}/ceph-mds
 %{_bindir}/ceph-osd
+%{_bindir}/ceph-bluestore-tool
+%{_bindir}/ceph-client-debug
+%{_bindir}/ceph-kvstore-tool
+%{_bindir}/ceph-mgr
+%{_libdir}/ceph/mgr
+%{_bindir}/ceph-monstore-tool
+%{_bindir}/ceph-osdomap-tool
+%{_bindir}/ceph_bench_log
+%{_bindir}/ceph_erasure_code
+%{_bindir}/ceph_erasure_code_benchmark
+%{_bindir}/ceph_kvstorebench
+%{_bindir}/ceph_multi_stress_watch
+%{_bindir}/ceph_objectstore_bench
+%{_bindir}/ceph_omapbench
+%{_bindir}/ceph_perf_local
+%{_bindir}/ceph_perf_msgr_client
+%{_bindir}/ceph_perf_msgr_server
+%{_bindir}/ceph_perf_objectstore
+%{_bindir}/ceph_psim
+%{_bindir}/ceph_radosacl
+%{_bindir}/ceph_rgw_jsonparser
+%{_bindir}/ceph_rgw_multiparser
+%{_bindir}/ceph_scratchtool
+%{_bindir}/ceph_scratchtoolpp
+%{_bindir}/ceph_smalliobench
+%{_bindir}/ceph_smalliobenchdumb
+%{_bindir}/ceph_smalliobenchfs
+%{_bindir}/ceph_smalliobenchrbd
+%{_bindir}/ceph_tpbench
+%{_bindir}/ceph_xattr_bench
 %{_bindir}/ceph-brag
 %{_bindir}/ceph-crush-location
 %{_bindir}/ceph-rbdnamer
@@ -261,33 +290,29 @@ install -m 0644 -D udev/60-ceph-by-parttypeuuid.rules %{buildroot}%{_udevrulesdi
 %{_bindir}/rbd
 %{_bindir}/rbd-mirror
 %{_bindir}/rbd-nbd
+%{_bindir}/rbd-replay-prep
 %{_bindir}/rbdmap
 %{_bindir}/ceph-debugpack
 %{_bindir}/ceph-coverage
 %{_bindir}/ceph-dencoder
 %{_bindir}/ceph-rest-api
 %{_bindir}/ceph-post-file
-%{_initrddir}/ceph
 %{_sbindir}/mount.ceph
 %{_sbindir}/ceph-create-keys
 %{_sbindir}/ceph-disk
 %{_sbindir}/ceph-disk-udev
+%{_libexecdir}/ceph
 %dir %{_libdir}/ceph
-%{_libexecdir}/ceph/ceph_common.sh
 %{_libdir}/ceph/ceph-monstore-update-crush.sh
-%{_libexecdir}/ceph/ceph-osd-prestart.sh
 %config(noreplace) %{_sysconfdir}/logrotate.d/ceph
-%config(noreplace) %{_sysconfdir}/bash_completion.d/rados
-%config(noreplace) %{_sysconfdir}/bash_completion.d/ceph
-%config(noreplace) %{_sysconfdir}/bash_completion.d/rbd
-%dir %{_localstatedir}/lib/ceph/
-%dir %{_localstatedir}/lib/ceph/tmp/
-%dir %{_localstatedir}/log/ceph/
 %{_datadir}/ceph/id_rsa_drop.ceph.com
 %{_datadir}/ceph/id_rsa_drop.ceph.com.pub
 %{_datadir}/ceph/known_hosts_drop.ceph.com
-%{_libdir}/ceph/compressor
-%exclude %{_libdir}/ceph/compressor/*.so
+%dir %{_libdir}/ceph/compressor
+%{_libdir}/ceph/compressor/*.so*
+%{_libdir}/ceph/crypto
+%{_libdir}/ceph/erasure-code
+%{_libdir}/ceph/libceph-common.so*
 %_mandir/man8/ceph-authtool.8*
 %_mandir/man8/ceph-clsinfo.8*
 %_mandir/man8/ceph-conf.8*
@@ -306,7 +331,6 @@ install -m 0644 -D udev/60-ceph-by-parttypeuuid.rules %{buildroot}%{_udevrulesdi
 %_mandir/man8/ceph-run.8*
 %_mandir/man8/ceph-syn.8*
 %_mandir/man8/ceph.8*
-%_mandir/man8/cephfs.8*
 %_mandir/man8/crushtool.8*
 %_mandir/man8/librados-config.8*
 %_mandir/man8/monmaptool.8*
@@ -321,10 +345,6 @@ install -m 0644 -D udev/60-ceph-by-parttypeuuid.rules %{buildroot}%{_udevrulesdi
 %_mandir/man8/rbd.8*
 %_mandir/man8/rbdmap.8*
 
-%files -n %{liberasure}
-%{_libdir}/ceph/erasure-code
-%exclude %{_libdir}/ceph/erasure-code/*.so
-
 %files fuse
 %{_bindir}/ceph-fuse
 %{_bindir}/rbd-fuse
@@ -333,7 +353,6 @@ install -m 0644 -D udev/60-ceph-by-parttypeuuid.rules %{buildroot}%{_udevrulesdi
 %{_sbindir}/mount.fuse.ceph
 
 %files radosgw
-#% {_initrddir}/ceph-radosgw
 %{_bindir}/radosgw
 %{_bindir}/radosgw-admin
 %_mandir/man8/radosgw-admin.8*
@@ -354,7 +373,7 @@ install -m 0644 -D udev/60-ceph-by-parttypeuuid.rules %{buildroot}%{_udevrulesdi
 %{_libdir}/librbd.so.%{major}*
 
 %files -n %{libcephfs}
-%{_libdir}/libcephfs.so.%{major}*
+%{_libdir}/libcephfs.so.%{maj2}*
 
 %files -n %{librgw}
 %{_libdir}/librgw.so.%{maj2}*
@@ -376,14 +395,23 @@ install -m 0644 -D udev/60-ceph-by-parttypeuuid.rules %{buildroot}%{_udevrulesdi
 %{_libdir}/librados.so
 %{_libdir}/libradosstriper.so
 %{_libdir}/librgw.so
-%{_libdir}/ceph/erasure-code/*.so
-%{_libdir}/ceph/compressor/*.so
+%{_libdir}/libos_tp.so
+%{_libdir}/libosd_tp.so
+%{_libdir}/librados_tp.so
+%{_libdir}/librbd_tp.so
 
 %files -n python-ceph
-%{python3_sitelib}/ceph_detect_init*
 %{python3_sitelib}/*.py*
-%{python3_sitelib}/__pycache__/*
-%{python3_sitelib}/ceph_disk*
 %{python3_sitearch}/cephfs*
 %{python3_sitearch}/rados*
 %{python3_sitearch}/rbd*
+%{python3_sitearch}/rgw*
+
+%files -n python2-ceph
+%{python2_sitelib}/*.py*
+%{python2_sitelib}/ceph_detect_init*
+%{python2_sitelib}/ceph_disk*
+%{python2_sitearch}/cephfs*
+%{python2_sitearch}/rados*
+%{python2_sitearch}/rbd*
+%{python2_sitearch}/rgw*
