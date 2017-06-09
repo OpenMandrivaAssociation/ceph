@@ -13,6 +13,8 @@
 %define librgw %mklibname rgw %{maj2}
 %define devname %mklibname ceph -d
 
+%bcond_without python2
+
 Summary:	User space components of the Ceph file system
 Name:		ceph
 Version:	12.0.3
@@ -41,6 +43,7 @@ BuildRequires:	pkgconfig(leveldb)
 BuildRequires:	pkgconfig(libudev)
 BuildRequires:	pkgconfig(systemd)
 BuildRequires:	pkgconfig(babeltrace)
+BuildRequires:	pkgconfig(python3)
 BuildRequires:	python-setuptools
 BuildRequires:	python-cython
 BuildRequires:	python-virtualenv
@@ -48,6 +51,16 @@ BuildRequires:	python-nose
 BuildRequires:	python-requests
 BuildRequires:	python-sphinx
 BuildRequires:	python-pip
+%if %{with python2}
+BuildRequires:	pkgconfig(python2)
+BuildRequires:	python2-setuptools
+BuildRequires:	python2-cython
+BuildRequires:	python2-virtualenv
+BuildRequires:	python2-nose
+BuildRequires:	python2-requests
+BuildRequires:	python2-sphinx
+BuildRequires:	python2-pip
+%endif
 BuildRequires:	snappy-devel
 BuildRequires:	yasm
 Obsoletes: %mklibname erasure 1
@@ -408,6 +421,7 @@ rm -f %{buildroot}%{_bindir}/dmclock-*tests \
 %{python3_sitearch}/rbd*
 %{python3_sitearch}/rgw*
 
+%if %{with python2}
 %files -n python2-ceph
 %{python2_sitelib}/*.py*
 %{python2_sitelib}/ceph_detect_init*
@@ -416,3 +430,4 @@ rm -f %{buildroot}%{_bindir}/dmclock-*tests \
 %{python2_sitearch}/rados*
 %{python2_sitearch}/rbd*
 %{python2_sitearch}/rgw*
+%endif
