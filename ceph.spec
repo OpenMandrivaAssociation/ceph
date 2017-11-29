@@ -18,7 +18,7 @@
 Summary:	User space components of the Ceph file system
 Name:		ceph
 Version:	12.0.3
-Release:	1
+Release:	2
 License:	GPLv2
 Group:		System/Base
 Url:		http://ceph.com
@@ -33,7 +33,7 @@ BuildRequires:	libaio-devel
 BuildRequires:	pkgconfig(atomic_ops)
 BuildRequires:	pkgconfig(blkid)
 BuildRequires:	pkgconfig(expat)
-BuildRequires:	pkgconfig(fuse)
+BuildRequires:	pkgconfig(fuse3)
 BuildRequires:	pkgconfig(libcurl)
 BuildRequires:	pkgconfig(libedit)
 BuildRequires:	pkgconfig(lttng-ust)
