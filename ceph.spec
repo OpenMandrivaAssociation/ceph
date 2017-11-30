@@ -63,6 +63,7 @@ BuildRequires:	python2-pip
 %endif
 BuildRequires:	snappy-devel
 BuildRequires:	yasm
+BuildRequires:	gperf
 Obsoletes: %mklibname erasure 1
 
 %libpackage os_tp 1
