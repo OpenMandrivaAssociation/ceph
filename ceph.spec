@@ -18,7 +18,7 @@
 Summary:	User space components of the Ceph file system
 Name:		ceph
 Version:	12.2.1
-Release:	1
+Release:	2
 License:	GPLv2
 Group:		System/Base
 Url:		http://ceph.com
