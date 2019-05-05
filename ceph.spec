@@ -29,7 +29,7 @@ Patch2:		ceph-14.2.0-cflags.patch
 Patch4:		ceph-14.2.0-cython-0.29.patch
 Patch5:		ceph-14.2.0-boost-sonames.patch
 BuildRequires:	boost-devel
-BuildRequires:	boost-python2-devel
+BuildRequires:	boost-python3-devel
 BuildRequires:	fcgi-devel
 BuildRequires:	git-core
 BuildRequires:	cmake
