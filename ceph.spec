@@ -44,6 +44,7 @@ BuildRequires:	pkgconfig(libudev)
 BuildRequires:	pkgconfig(systemd)
 BuildRequires:	pkgconfig(babeltrace)
 BuildRequires:	pkgconfig(python3)
+BuildRequires:	openldap-devel
 BuildRequires:	python-setuptools
 BuildRequires:	python-cython
 BuildRequires:	python-virtualenv
