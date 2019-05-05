@@ -51,6 +51,7 @@ BuildRequires:	python-nose
 BuildRequires:	python-requests
 BuildRequires:	python-sphinx
 BuildRequires:	python-pip
+BuildRequires:	python-sphinx
 %if %{with python2}
 BuildRequires:	pkgconfig(python2)
 BuildRequires:	python2-setuptools
@@ -58,7 +59,6 @@ BuildRequires:	python2-cython
 BuildRequires:	python2-virtualenv
 BuildRequires:	python2-nose
 BuildRequires:	python2-requests
-BuildRequires:	python2-sphinx
 BuildRequires:	python2-pip
 %endif
 BuildRequires:	snappy-devel
