@@ -32,6 +32,7 @@ BuildRequires:	keyutils-devel
 BuildRequires:	libaio-devel
 BuildRequires:	pkgconfig(atomic_ops)
 BuildRequires:	pkgconfig(fuse3)
+BuildRequires:	pkgconfig(fuse)
 BuildRequires:	pkgconfig(libzstd)
 BuildRequires:	pkgconfig(openssl)
 BuildRequires:	pkgconfig(zlib)
