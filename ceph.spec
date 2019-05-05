@@ -38,6 +38,7 @@ BuildRequires:	libaio-devel
 BuildRequires:	libibverbs-devel
 BuildRequires:	rdmacm-devel
 BuildRequires:	pkgconfig(cunit)
+BuildRequires:	pkgconfig(liblz4)
 BuildRequires:	pkgconfig(liboath)
 BuildRequires:	pkgconfig(atomic_ops)
 BuildRequires:	pkgconfig(fuse3)
