@@ -36,6 +36,7 @@ BuildRequires:	cmake
 BuildRequires:	keyutils-devel
 BuildRequires:	libaio-devel
 BuildRequires:	libibverbs-devel
+BuildRequires:	rdmacm-devel
 BuildRequires:	pkgconfig(liboath)
 BuildRequires:	pkgconfig(atomic_ops)
 BuildRequires:	pkgconfig(fuse3)
