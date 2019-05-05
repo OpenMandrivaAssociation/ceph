@@ -31,6 +31,8 @@ BuildRequires:	cmake
 BuildRequires:	keyutils-devel
 BuildRequires:	libaio-devel
 BuildRequires:	pkgconfig(atomic_ops)
+BuildRequires:	pkgconfig(openssl)
+BuildRequires:	pkgconfig(zlib)
 BuildRequires:	pkgconfig(blkid)
 BuildRequires:	pkgconfig(expat)
 BuildRequires:	pkgconfig(fuse3)
