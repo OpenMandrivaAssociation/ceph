@@ -17,19 +17,25 @@
 
 Summary:	User space components of the Ceph file system
 Name:		ceph
-Version:	12.2.12
-Release:	2
+Version:	14.2.1
+Release:	1
 License:	GPLv2
 Group:		System/Base
 Url:		http://ceph.com
 Source0:	http://download.ceph.com/tarballs/%{name}-%{version}.tar.gz
 Source1:	ceph.rpmlintrc
+Patch1:		ceph-12.2.0-use-provided-cpu-flag-values.patch
+Patch2:		ceph-14.2.0-cflags.patch
+Patch4:		ceph-14.2.0-cython-0.29.patch
+Patch5:		ceph-14.2.0-boost-sonames.patch
 BuildRequires:	boost-devel
+BuildRequires:	boost-python2-devel
 BuildRequires:	fcgi-devel
 BuildRequires:	git-core
 BuildRequires:	cmake
 BuildRequires:	keyutils-devel
 BuildRequires:	libaio-devel
+BuildRequires:	pkgconfig(liboath)
 BuildRequires:	pkgconfig(atomic_ops)
 BuildRequires:	pkgconfig(fuse3)
 BuildRequires:	pkgconfig(fuse)
@@ -49,6 +55,7 @@ BuildRequires:	pkgconfig(libudev)
 BuildRequires:	pkgconfig(systemd)
 BuildRequires:	pkgconfig(babeltrace)
 BuildRequires:	pkgconfig(python3)
+BuildRequires:	pkgconfig(librabbitmq)
 BuildRequires:	openldap-devel
 BuildRequires:	python-setuptools
 BuildRequires:	python-cython
@@ -215,9 +222,12 @@ export CXX=g++
 
 %cmake \
 	-DBUILD_SHARED_LIBS:BOOL=ON \
+	-DWITH_OCF=ON -DWITH_NSS=ON -DWITH_PYTHON3=ON -DWITH_DEBUG=ON \
+	-DWITH_PYTHON2=OFF -DMGR_PYTHON_VERSION=3 \
 	-DWITH_CEPHFS:BOOL=ON \
 	-DWITH_SYSTEMD:BOOL=ON \
 	-DWITH_SYSTEM_BOOST:BOOL=ON \
+	-DEPYTHON_VERSION="${EPYTHON#python}" \
 	-DWITH_PYTHON3:BOOL=ON
 %make
 
