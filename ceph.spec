@@ -211,7 +211,7 @@ object storage.
 
 %prep
 %setup -q
-%apply_patches
+%autopatch -p1
 
 %build
 # (tpg) try to reduce memory when building on arm
