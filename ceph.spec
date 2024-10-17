@@ -21,7 +21,7 @@ Version:	14.2.1
 Release:	2
 License:	GPLv2
 Group:		System/Base
-Url:		http://ceph.com
+Url:		https://ceph.com
 Source0:	http://download.ceph.com/tarballs/%{name}-%{version}.tar.gz
 Source1:	ceph.rpmlintrc
 Patch1:		ceph-12.2.0-use-provided-cpu-flag-values.patch
