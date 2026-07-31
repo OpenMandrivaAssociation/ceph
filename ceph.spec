@@ -17,17 +17,17 @@
 
 Summary:	User space components of the Ceph file system
 Name:		ceph
-Version:	14.2.1
-Release:	2
+Version:	20.2.2
+Release:	1
 License:	GPLv2
 Group:		System/Base
 Url:		https://ceph.com
 Source0:	http://download.ceph.com/tarballs/%{name}-%{version}.tar.gz
 Source1:	ceph.rpmlintrc
-Patch1:		ceph-12.2.0-use-provided-cpu-flag-values.patch
-Patch2:		ceph-14.2.0-cflags.patch
-Patch4:		ceph-14.2.0-cython-0.29.patch
-Patch5:		ceph-14.2.0-boost-sonames.patch
+# dropped (no longer applies): Patch1:		ceph-12.2.0-use-provided-cpu-flag-values.patch
+# dropped (no longer applies): Patch2:		ceph-14.2.0-cflags.patch
+# dropped (no longer applies): Patch4:		ceph-14.2.0-cython-0.29.patch
+# dropped (no longer applies): Patch5:		ceph-14.2.0-boost-sonames.patch
 BuildRequires:	boost-devel
 BuildRequires:	boost-python3-devel
 BuildRequires:	fcgi-devel
