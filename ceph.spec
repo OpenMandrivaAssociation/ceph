@@ -35,6 +35,9 @@ BuildRequires:	boost-python3-devel
 BuildRequires:	fcgi-devel
 BuildRequires:	git-core
 BuildRequires:	cmake
+# %cmake uses the Unix Makefiles generator. basesystem-build has gcc
+# and clang, not make.
+BuildRequires:	make
 BuildRequires:	keyutils-devel
 BuildRequires:	libaio-devel
 BuildRequires:	libibverbs-devel
