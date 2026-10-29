@@ -339,7 +339,7 @@ for mod in rados rbd cephfs rgw; do
 done
 
 %files
-%doc README COPYING
+%doc README.md COPYING
 %{_sysconfdir}/bash_completion.d/ceph
 %{_sysconfdir}/bash_completion.d/rados
 %{_sysconfdir}/bash_completion.d/rbd
