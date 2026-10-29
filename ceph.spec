@@ -1,6 +1,10 @@
 %define _disable_ld_no_undefined 1
 %define _disable_rebuild_configure 1
 %define _disable_lto 1
+%ifarch aarch64
+# Altra reports 160 CPUs. make -j160 is SIGKILL'd around 46% (684180).
+%global _smp_ncpus_max 32
+%endif
 
 %define maj0 0
 %define major 1
