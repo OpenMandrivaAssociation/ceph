@@ -35,6 +35,9 @@ Patch0:		0001-make-libnbd-optional.patch
 Patch1:		0002-memstore-static-library.patch
 Patch2:		0003-erasure-code-option-headers.patch
 Patch3:		0004-isal-fpic.patch
+# librgw links rgw_common PRIVATE, so Boost::url is not on the consumer
+# link line. ld.bfd then rejects the librgw file tests (684178, 684181).
+Patch4:		0005-rgw-public-boost-url.patch
 # dropped (no longer applies): Patch1:		ceph-12.2.0-use-provided-cpu-flag-values.patch
 # dropped (no longer applies): Patch2:		ceph-14.2.0-cflags.patch
 # dropped (no longer applies): Patch4:		ceph-14.2.0-cython-0.29.patch

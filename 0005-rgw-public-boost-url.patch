@@ -1,0 +1,21 @@
+From: Bernhard Rosenkränzer <bero@lindev.ch>
+Subject: Link librgw's public interface with Boost::url
+
+rgw_common links Boost::url PUBLIC, but the shared rgw target links
+rgw_common PRIVATE. ld.bfd will not satisfy a symbol referenced by a
+consumer .o from librgw.so's DT_NEEDED entry. The librgw file tests
+that include rgw_file_int.h (xattr, marker, nfsns) fail with
+boost::urls::detail::throw_length_error missing from the command line.
+
+--- a/src/rgw/CMakeLists.txt
++++ b/src/rgw/CMakeLists.txt
+@@ -1102,7 +1102,8 @@ target_link_libraries(rgw
+   OpenSSL::SSL
+   PUBLIC
+   RapidJSON::RapidJSON
+-  dmclock::dmclock)
++  dmclock::dmclock
++  Boost::url)
+ 
+ if(WITH_RADOSGW_AMQP_ENDPOINT)
+   target_link_libraries(rgw PRIVATE RabbitMQ::RabbitMQ)
