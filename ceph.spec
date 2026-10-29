@@ -70,6 +70,8 @@ BuildRequires:	pkgconfig(libcryptsetup)
 BuildRequires:	pkgconfig(sqlite3)
 BuildRequires:	pkgconfig(icu-uc)
 BuildRequires:	pkgconfig(libcap)
+# mount.ceph uses libcap-ng, which is not libcap.
+BuildRequires:	pkgconfig(libcap-ng)
 BuildRequires:	pkgconfig(liburing)
 BuildRequires:	pkgconfig(lua)
 # Jaeger tracing is on by default and links system Thrift.
