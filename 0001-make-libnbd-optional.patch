@@ -1,0 +1,17 @@
+From: Bernhard Rosenkränzer <bero@lindev.ch>
+Subject: Make libnbd optional
+
+Cooker does not ship libnbd. RBD NBD migration sources are compiled
+only when the library is present.
+
+diff -up a/CMakeLists.txt b/CMakeLists.txt
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -298,7 +298,7 @@ endif()
+ 
+ # libnbd
+ if(WITH_RBD AND NOT WIN32 AND NOT APPLE AND NOT FREEBSD)
+-  find_package(libnbd 1.0 REQUIRED)
++  find_package(libnbd 1.0)
+   set(HAVE_LIBNBD ${LIBNBD_FOUND})
+ endif()

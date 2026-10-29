@@ -13,17 +13,19 @@
 %define librgw %mklibname rgw %{maj2}
 %define devname %mklibname ceph -d
 
-%bcond_without python2
-
 Summary:	User space components of the Ceph file system
 Name:		ceph
-Version:	20.2.2
+Version:	22.0.0
 Release:	1
 License:	GPLv2
 Group:		System/Base
 Url:		https://ceph.com
-Source0:	http://download.ceph.com/tarballs/%{name}-%{version}.tar.gz
+# Official tarball URLs 404 for this tag. The file is a make-dist
+# archive (submodules, boost, liburing, prebuilt dashboard frontend).
+Source0:	http://download.ceph.com/tarballs/%{name}-%{version}.tar.bz2
 Source1:	ceph.rpmlintrc
+# Cooker has no libnbd. NBD migration sources stay off without it.
+Patch0:		0001-make-libnbd-optional.patch
 # dropped (no longer applies): Patch1:		ceph-12.2.0-use-provided-cpu-flag-values.patch
 # dropped (no longer applies): Patch2:		ceph-14.2.0-cflags.patch
 # dropped (no longer applies): Patch4:		ceph-14.2.0-cython-0.29.patch
@@ -61,7 +63,13 @@ BuildRequires:	pkgconfig(systemd)
 BuildRequires:	pkgconfig(babeltrace)
 BuildRequires:	pkgconfig(python3)
 BuildRequires:	pkgconfig(librabbitmq)
-BuildRequires:	openldap-devel
+BuildRequires:	pkgconfig(ldap)
+BuildRequires:	pkgconfig(libcryptsetup)
+BuildRequires:	pkgconfig(sqlite3)
+BuildRequires:	pkgconfig(icu-uc)
+BuildRequires:	pkgconfig(libcap)
+BuildRequires:	pkgconfig(liburing)
+BuildRequires:	pkgconfig(lua)
 BuildRequires:	python-setuptools
 BuildRequires:	python-cython
 BuildRequires:	python-virtualenv
@@ -69,16 +77,6 @@ BuildRequires:	python-nose
 BuildRequires:	python-requests
 BuildRequires:	python-sphinx
 BuildRequires:	python-pip
-BuildRequires:	python-sphinx
-%if %{with python2}
-BuildRequires:	pkgconfig(python2)
-BuildRequires:	python2-setuptools
-BuildRequires:	python2-cython
-BuildRequires:	python2-virtualenv
-BuildRequires:	python2-nose
-BuildRequires:	python2-requests
-BuildRequires:	python2-pip
-%endif
 BuildRequires:	snappy-devel
 BuildRequires:	yasm
 BuildRequires:	gperf
@@ -96,7 +94,7 @@ performance, reliability, and scalability.
 %package fuse
 Summary:	Ceph fuse-based client
 Group:		System/Base
-Requires:	%{name} = %{version}-%{release}
+Requires:	%{name} = %{EVRD}
 
 %description fuse
 FUSE based client for Ceph distributed network file system
@@ -180,12 +178,12 @@ Summary:	Ceph headers
 Group:		Development/C
 License:	LGPLv2
 Provides:	%{name}-devel
-Requires:	%{libcephfs} = %{version}-%{release}
-Requires:	%{libcls} = %{version}-%{release}
-Requires:	%{librados} = %{version}-%{release}
-Requires:	%{librbd} = %{version}-%{release}
-Requires:	%{libradosstriper} = %{version}-%{release}
-Requires:	%{librgw} = %{version}-%{release}
+Requires:	%{libcephfs} = %{EVRD}
+Requires:	%{libcls} = %{EVRD}
+Requires:	%{librados} = %{EVRD}
+Requires:	%{librbd} = %{EVRD}
+Requires:	%{libradosstriper} = %{EVRD}
+Requires:	%{librgw} = %{EVRD}
 
 %description -n %{devname}
 This package contains libraries and headers needed to develop programs
@@ -198,15 +196,6 @@ License:	LGPLv2
 
 %description -n python-ceph
 This package contains Python libraries for interacting with Cephs RADOS
-object storage.
-
-%package -n python2-ceph
-Summary:	Python 2.x libraries for the Ceph distributed filesystem
-Group:		System/Libraries
-License:	LGPLv2
-
-%description -n python2-ceph
-This package contains Python 2.x libraries for interacting with Cephs RADOS
 object storage.
 
 %prep
@@ -225,13 +214,24 @@ object storage.
 export CC=gcc
 export CXX=g++
 
+# Dashboard frontend is already built in the dist tarball (no network
+# here). NVMe-oF monitor client needs gRPC, which cooker does not ship.
+# QAT/UADK default on in 22 and build bundled copies; leave them off.
+# cephadm must not pip-install its dependencies during the build.
 %cmake \
 	-DBUILD_SHARED_LIBS:BOOL=ON \
 	-DWITH_OCF=ON -DWITH_NSS=ON -DWITH_PYTHON3=ON -DWITH_DEBUG=ON \
-	-DWITH_PYTHON2=OFF -DMGR_PYTHON_VERSION=3 \
+	-DMGR_PYTHON_VERSION=3 \
 	-DWITH_CEPHFS:BOOL=ON \
 	-DWITH_SYSTEMD:BOOL=ON \
 	-DWITH_SYSTEM_BOOST:BOOL=ON \
+	-DWITH_SYSTEM_LIBURING:BOOL=ON \
+	-DWITH_MGR_DASHBOARD_FRONTEND:BOOL=OFF \
+	-DWITH_NVMEOF_GATEWAY_MONITOR_CLIENT:BOOL=OFF \
+	-DWITH_QATLIB:BOOL=OFF \
+	-DWITH_QATZIP:BOOL=OFF \
+	-DWITH_UADK:BOOL=OFF \
+	-DCEPHADM_BUNDLED_DEPENDENCIES=none \
 	-DEPYTHON_VERSION="${EPYTHON#python}" \
 	-DWITH_PYTHON3:BOOL=ON
 %make
@@ -276,7 +276,6 @@ rm -f %{buildroot}%{_bindir}/dmclock-*tests \
 %{_bindir}/cephfs-journal-tool
 %{_bindir}/ceph-conf
 %{_bindir}/ceph-clsinfo
-%{_bindir}/ceph-detect-init
 %{_bindir}/crushtool
 %{_bindir}/monmaptool
 %{_bindir}/osdmaptool
@@ -290,7 +289,7 @@ rm -f %{buildroot}%{_bindir}/dmclock-*tests \
 %{_bindir}/ceph-client-debug
 %{_bindir}/ceph-kvstore-tool
 %{_bindir}/ceph-mgr
-%{_libdir}/ceph/mgr
+%{_datadir}/ceph/mgr
 %{_bindir}/ceph-monstore-tool
 %{_bindir}/ceph-osdomap-tool
 %{_bindir}/ceph_bench_log
@@ -316,9 +315,15 @@ rm -f %{buildroot}%{_bindir}/dmclock-*tests \
 %{_bindir}/ceph_smalliobenchrbd
 %{_bindir}/ceph_tpbench
 %{_bindir}/ceph_xattr_bench
-%{_bindir}/ceph-brag
 %{_bindir}/ceph-crush-location
 %{_bindir}/ceph-rbdnamer
+%{_bindir}/ceph-exporter
+%{_bindir}/ceph-crash
+%{_bindir}/cephfs-top
+%{_bindir}/cephfs-mirror
+%{_bindir}/ceph-immutable-object-cache
+%{_bindir}/crushdiff
+%{_bindir}/ceph-diff-sorted
 %{_bindir}/librados-config
 %{_bindir}/rados
 %{_bindir}/radosgw-object-expirer
@@ -331,12 +336,20 @@ rm -f %{buildroot}%{_bindir}/dmclock-*tests \
 %{_bindir}/ceph-debugpack
 %{_bindir}/ceph-coverage
 %{_bindir}/ceph-dencoder
-%{_bindir}/ceph-rest-api
 %{_bindir}/ceph-post-file
+%{_bindir}/rgw-gap-list
+%{_bindir}/rgw-orphan-list
+%{_bindir}/rgw-policy-check
+%{_bindir}/rgw-policy-test
+%{_bindir}/rgw-restore-bucket-index
 %{_sbindir}/mount.ceph
 %{_sbindir}/ceph-create-keys
-%{_sbindir}/ceph-disk
-%{_sbindir}/ceph-disk-udev
+%{_sbindir}/cephadm
+%{_sbindir}/ceph-volume
+%{_sbindir}/ceph-volume-systemd
+%{_sbindir}/ceph-node-proxy
+%{_sbindir}/libcephfsd
+%{_libexecdir}/cephadm_invoker.py
 %{_libexecdir}/ceph
 %dir %{_libdir}/ceph
 %{_libdir}/ceph/ceph-monstore-update-crush.sh
@@ -348,6 +361,8 @@ rm -f %{buildroot}%{_bindir}/dmclock-*tests \
 %{_libdir}/ceph/compressor/*.so*
 %{_libdir}/ceph/crypto
 %{_libdir}/ceph/erasure-code
+%{_libdir}/ceph/extblkdev
+%{_libdir}/ceph/librbd
 %{_libdir}/ceph/libceph-common.so*
 %_mandir/man8/ceph-authtool.8*
 %_mandir/man8/ceph-clsinfo.8*
@@ -355,15 +370,26 @@ rm -f %{buildroot}%{_bindir}/dmclock-*tests \
 %_mandir/man8/ceph-create-keys.8*
 %_mandir/man8/ceph-debugpack.8*
 %_mandir/man8/ceph-dencoder.8*
-%_mandir/man8/ceph-deploy.8*
-%_mandir/man8/ceph-detect-init.8*
-%_mandir/man8/ceph-disk.8*
 %_mandir/man8/ceph-mds.8*
+%_mandir/man8/cephadm.8*
+%_mandir/man8/ceph-volume.8*
+%_mandir/man8/ceph-volume-systemd.8*
+%_mandir/man8/cephfs-top.8*
+%_mandir/man8/cephfs-mirror.8*
+%_mandir/man8/ceph-immutable-object-cache.8*
+%_mandir/man8/ceph-bluestore-tool.8*
+%_mandir/man8/ceph-kvstore-tool.8*
+%_mandir/man8/crushdiff.8*
+%_mandir/man8/ceph-diff-sorted.8*
+%_mandir/man8/rgw-gap-list.8*
+%_mandir/man8/rgw-orphan-list.8*
+%_mandir/man8/rgw-policy-check.8*
+%_mandir/man8/rgw-policy-test.8*
+%_mandir/man8/rgw-restore-bucket-index.8*
 %_mandir/man8/ceph-mon.8*
 %_mandir/man8/ceph-osd.8*
 %_mandir/man8/ceph-post-file.8*
 %_mandir/man8/ceph-rbdnamer.8*
-%_mandir/man8/ceph-rest-api.8*
 %_mandir/man8/ceph-run.8*
 %_mandir/man8/ceph-syn.8*
 %_mandir/man8/ceph.8*
@@ -401,6 +427,7 @@ rm -f %{buildroot}%{_bindir}/dmclock-*tests \
 
 %files -n %{librados}
 %{_libdir}/librados.so.%{maj2}*
+%{_libdir}/libcephsqlite.so*
 
 %files -n %{libradosstriper}
 %{_libdir}/libradosstriper.so.%{major}*
@@ -410,6 +437,7 @@ rm -f %{buildroot}%{_bindir}/dmclock-*tests \
 
 %files -n %{libcephfs}
 %{_libdir}/libcephfs.so.%{maj2}*
+%{_libdir}/libcephfs_proxy.so.%{maj2}*
 
 %files -n %{librgw}
 %{_libdir}/librgw.so.%{maj2}*
@@ -427,6 +455,9 @@ rm -f %{buildroot}%{_bindir}/dmclock-*tests \
 %dir %{_includedir}/rbd
 %{_includedir}/rbd/*
 %{_libdir}/libcephfs.so
+%{_libdir}/libcephfs_proxy.so
+%{_includedir}/libcephsqlite.h
+%{_libdir}/pkgconfig/cephfs.pc
 %{_libdir}/librbd.so
 %{_libdir}/librados.so
 %{_libdir}/libradosstriper.so
@@ -437,19 +468,5 @@ rm -f %{buildroot}%{_bindir}/dmclock-*tests \
 %{_libdir}/librbd_tp.so
 
 %files -n python-ceph
-%{python3_sitelib}/*.py*
-%{python3_sitearch}/cephfs*
-%{python3_sitearch}/rados*
-%{python3_sitearch}/rbd*
-%{python3_sitearch}/rgw*
-
-%if %{with python2}
-%files -n python2-ceph
-%{python2_sitelib}/*.py*
-%{python2_sitelib}/ceph_detect_init*
-%{python2_sitelib}/ceph_disk*
-%{python2_sitearch}/cephfs*
-%{python2_sitearch}/rados*
-%{python2_sitearch}/rbd*
-%{python2_sitearch}/rgw*
-%endif
+%{python3_sitelib}/*
+%{python3_sitearch}/*
