@@ -72,6 +72,10 @@ BuildRequires:	pkgconfig(icu-uc)
 BuildRequires:	pkgconfig(libcap)
 BuildRequires:	pkgconfig(liburing)
 BuildRequires:	pkgconfig(lua)
+# Jaeger tracing is on by default and links system Thrift.
+BuildRequires:	pkgconfig(thrift)
+# nasm builds the ISA-L assembly. yasm is not a substitute.
+BuildRequires:	nasm
 BuildRequires:	python-setuptools
 BuildRequires:	python-cython
 BuildRequires:	python-virtualenv
