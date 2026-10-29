@@ -1,0 +1,74 @@
+From: Bernhard Rosenkränzer <bero@lindev.ch>
+Subject: Depend on generated option headers in erasure-code plugins
+
+jerasure_init.cc includes the generated legacy option headers, but
+its object library did not depend on them. Parallel make compiled it
+before y2c.py wrote mon_legacy_options.h. The other erasure-code
+plugins that include the same headers had the same gap.
+
+diff --git a/src/erasure-code/CMakeLists.txt b/src/erasure-code/CMakeLists.txt
+index 167a1ba..77828ab 100644
+--- a/src/erasure-code/CMakeLists.txt
++++ b/src/erasure-code/CMakeLists.txt
+@@ -34,9 +34,11 @@ endif()
+ 
+ add_library(erasure_code OBJECT ErasureCodePlugin.cc)
+ target_link_libraries(erasure_code $<$<PLATFORM_ID:Windows>:dlfcn_win32>
+-                      ${CMAKE_DL_LIBS})
++                      ${CMAKE_DL_LIBS}
++                      legacy-option-headers)
+ 
+ add_library(erasure_code_objs OBJECT ErasureCode.cc)
++target_link_libraries(erasure_code_objs legacy-option-headers)
+ 
+ add_custom_target(erasure_code_plugins DEPENDS
+     ${EC_ISA_LIB}
+diff --git a/src/erasure-code/clay/CMakeLists.txt b/src/erasure-code/clay/CMakeLists.txt
+index c5af1e2..3bdd78b 100644
+--- a/src/erasure-code/clay/CMakeLists.txt
++++ b/src/erasure-code/clay/CMakeLists.txt
+@@ -9,6 +9,7 @@ set(clay_srcs
+ )
+ 
+ add_library(ec_clay SHARED ${clay_srcs})
++target_link_libraries(ec_clay legacy-option-headers)
+ set_target_properties(ec_clay PROPERTIES
+   INSTALL_RPATH "")
+ install(TARGETS ec_clay DESTINATION ${erasure_plugin_dir})
+diff --git a/src/erasure-code/isa/CMakeLists.txt b/src/erasure-code/isa/CMakeLists.txt
+index 6162075..784ca9e 100644
+--- a/src/erasure-code/isa/CMakeLists.txt
++++ b/src/erasure-code/isa/CMakeLists.txt
+@@ -12,7 +12,7 @@ set(isa_srcs
+ add_library(ec_isa SHARED
+   ${isa_srcs}
+   $<TARGET_OBJECTS:erasure_code_objs>)
+-target_link_libraries(ec_isa ISAL::ISAL ${EXTRALIBS})
++target_link_libraries(ec_isa ISAL::ISAL ${EXTRALIBS} legacy-option-headers)
+ set_target_properties(ec_isa PROPERTIES
+   INSTALL_RPATH "")
+ install(TARGETS ec_isa DESTINATION ${erasure_plugin_dir})
+diff --git a/src/erasure-code/jerasure/CMakeLists.txt b/src/erasure-code/jerasure/CMakeLists.txt
+index ed14b56..4817473 100644
+--- a/src/erasure-code/jerasure/CMakeLists.txt
++++ b/src/erasure-code/jerasure/CMakeLists.txt
+@@ -10,6 +10,7 @@ target_link_libraries(jerasure_utils legacy-option-headers)
+ # jerasure_init is ceph's own glue code for galois field initialization,
+ # not part of the jerasure library itself.
+ add_library(jerasure_init_objs OBJECT jerasure_init.cc)
++target_link_libraries(jerasure_init_objs legacy-option-headers)
+ 
+ if(NOT WITH_SYSTEM_JERASURE)
+ # Set the CFLAGS correctly for gf-complete based on SIMD compiler support
+diff --git a/src/erasure-code/lrc/CMakeLists.txt b/src/erasure-code/lrc/CMakeLists.txt
+index ea52a3d..4b5b82d 100644
+--- a/src/erasure-code/lrc/CMakeLists.txt
++++ b/src/erasure-code/lrc/CMakeLists.txt
+@@ -9,6 +9,7 @@ set(lrc_srcs
+ )
+ 
+ add_library(ec_lrc SHARED ${lrc_srcs})
++target_link_libraries(ec_lrc legacy-option-headers)
+ set_target_properties(ec_lrc PROPERTIES
+   INSTALL_RPATH "")
+ install(TARGETS ec_lrc DESTINATION ${erasure_plugin_dir})

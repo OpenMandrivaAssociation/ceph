@@ -27,6 +27,7 @@ Source1:	ceph.rpmlintrc
 # Cooker has no libnbd. NBD migration sources stay off without it.
 Patch0:		0001-make-libnbd-optional.patch
 Patch1:		0002-memstore-static-library.patch
+Patch2:		0003-erasure-code-option-headers.patch
 # dropped (no longer applies): Patch1:		ceph-12.2.0-use-provided-cpu-flag-values.patch
 # dropped (no longer applies): Patch2:		ceph-14.2.0-cflags.patch
 # dropped (no longer applies): Patch4:		ceph-14.2.0-cython-0.29.patch
@@ -235,7 +236,10 @@ object storage.
 
 export CC=gcc
 export CXX=g++
+# ISA-L's autoreconf needs slibtool's LT_INIT, which is not in the
+# default aclocal directory.
 export LIBTOOLIZE=slibtoolize
+export ACLOCAL_PATH="/usr/share/slibtool${ACLOCAL_PATH:+:$ACLOCAL_PATH}"
 
 # Dashboard frontend is already built in the dist tarball (no network
 # here). NVMe-oF monitor client needs gRPC, which cooker does not ship.
