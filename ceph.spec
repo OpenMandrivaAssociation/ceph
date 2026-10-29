@@ -26,6 +26,7 @@ Source0:	http://download.ceph.com/tarballs/%{name}-%{version}.tar.bz2
 Source1:	ceph.rpmlintrc
 # Cooker has no libnbd. NBD migration sources stay off without it.
 Patch0:		0001-make-libnbd-optional.patch
+Patch1:		0002-memstore-static-library.patch
 # dropped (no longer applies): Patch1:		ceph-12.2.0-use-provided-cpu-flag-values.patch
 # dropped (no longer applies): Patch2:		ceph-14.2.0-cflags.patch
 # dropped (no longer applies): Patch4:		ceph-14.2.0-cython-0.29.patch

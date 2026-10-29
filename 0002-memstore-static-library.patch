@@ -1,0 +1,19 @@
+From: Bernhard Rosenkränzer <bero@lindev.ch>
+Subject: Build memstore as a static library
+
+os is a static library and links memstore, which links os back.
+With BUILD_SHARED_LIBS=ON, memstore becomes a shared library and
+CMake 4 rejects that cycle. Cycles among static libraries are
+allowed. memstore is not installed as its own library.
+
+diff -up a/src/os/memstore/CMakeLists.txt b/src/os/memstore/CMakeLists.txt
+--- a/src/os/memstore/CMakeLists.txt
++++ b/src/os/memstore/CMakeLists.txt
+@@ -1,6 +1,6 @@
+ include(CheckCXXCompilerFlag)
+ 
+-add_library(memstore
++add_library(memstore STATIC
+   MemStore.cc)
+ target_link_libraries(memstore PRIVATE os)
+ check_cxx_compiler_flag("-Wno-maybe-uninitialized"
