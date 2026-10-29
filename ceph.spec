@@ -38,6 +38,9 @@ Patch3:		0004-isal-fpic.patch
 # librgw links rgw_common PRIVATE, so Boost::url is not on the consumer
 # link line. ld.bfd then rejects the librgw file tests (684178, 684181).
 Patch4:		0005-rgw-public-boost-url.patch
+# fusestore and bundled BLAKE3 were shared but not installed (684237).
+Patch5:		0006-fusestore-static-library.patch
+Patch6:		0007-blake3-static-library.patch
 # dropped (no longer applies): Patch1:		ceph-12.2.0-use-provided-cpu-flag-values.patch
 # dropped (no longer applies): Patch2:		ceph-14.2.0-cflags.patch
 # dropped (no longer applies): Patch4:		ceph-14.2.0-cython-0.29.patch
@@ -139,12 +142,9 @@ FUSE based client for Ceph distributed network file system
 %package radosgw
 Summary:	Rados REST gateway
 Group:		System/Base
-Requires:	apache-mod_fcgid
 
 %description radosgw
-radosgw is an S3 HTTP REST gateway for the RADOS object store. It is
-implemented as a FastCGI module using libfcgi, and can be used in
-conjunction with any FastCGI capable web server.
+radosgw is an S3 and Swift HTTP gateway for the RADOS object store.
 
 %package -n %{libcephfs}
 Summary:	Ceph distributed file system client library
@@ -316,7 +316,12 @@ rm -rf %{buildroot}%{_sysconfdir}/init.d
 # Tests that shouldn't be required post-install
 # and that drag in a slew of dependencies...
 rm -f %{buildroot}%{_bindir}/dmclock-*tests \
-	%{buildroot}%{_bindir}/ceph_test_*
+	%{buildroot}%{_bindir}/ceph_test_* \
+	%{buildroot}%{_bindir}/ceph_multi_stress_watch \
+	%{buildroot}%{_bindir}/ceph_perf_local \
+	%{buildroot}%{_bindir}/ceph_perf_msgr_client \
+	%{buildroot}%{_bindir}/ceph_perf_msgr_server \
+	%{buildroot}%{_bindir}/ceph_perf_objectstore
 
 # pip installs the cython extensions. An empty sitearch glob fails the
 # build, and a copy left under /usr/local is unpackaged.
@@ -377,13 +382,8 @@ done
 %{_bindir}/ceph-dedup-daemon
 %{_bindir}/ceph-dedup-tool
 %{_bindir}/cephfs-tool
-%{_bindir}/ceph_multi_stress_watch
 %{_bindir}/ceph_objectstore_bench
 %{_bindir}/ceph_omapbench
-%{_bindir}/ceph_perf_local
-%{_bindir}/ceph_perf_msgr_client
-%{_bindir}/ceph_perf_msgr_server
-%{_bindir}/ceph_perf_objectstore
 %{_bindir}/ceph_psim
 %{_bindir}/ceph_rgw_jsonparser
 %{_bindir}/ceph_rgw_multiparser

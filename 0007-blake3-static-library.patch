@@ -1,0 +1,25 @@
+From: Bernhard Rosenkränzer <bero@lindev.ch>
+Subject: Build the bundled BLAKE3 as a static library
+
+Ceph compiles its bundled BLAKE3 with EXCLUDE_FROM_ALL and does not
+install it. BUILD_SHARED_LIBS=ON still makes libblake3.so.0, and
+librgw plus the radosgw tools require that SONAME. Cooker has no
+libblake3 package. Keep the bundled copy static so it is linked in.
+
+diff -up a/src/CMakeLists.txt b/src/CMakeLists.txt
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -221,7 +221,12 @@ if(HAS_GLIBCXX_ASSERTIONS AND CMAKE_BUILD_TYPE STREQUAL Debug)
+ endif()
+ 
+ # add BLAKE3 before we clobber CMAKE_ASM_COMPILER
+-add_subdirectory(BLAKE3/c EXCLUDE_FROM_ALL)
++# The bundled copy is not installed. A shared build would leave
++# libblake3.so.0 as a DT_NEEDED with no provider.
++set(_ceph_build_shared_libs ${BUILD_SHARED_LIBS})
++set(BUILD_SHARED_LIBS OFF)
++add_subdirectory(BLAKE3/c EXCLUDE_FROM_ALL)
++set(BUILD_SHARED_LIBS ${_ceph_build_shared_libs})
+ 
+ include(SIMDExt)
+ if(HAVE_INTEL)

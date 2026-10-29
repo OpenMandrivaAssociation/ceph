@@ -1,0 +1,20 @@
+From: Bernhard Rosenkränzer <bero@lindev.ch>
+Subject: Build fusestore as a static library
+
+os links fusestore, and the object-store tools link it too. With
+BUILD_SHARED_LIBS=ON, fusestore becomes libfusestore.so with an
+unversioned SONAME, and nothing installs that library. The daemons
+then require a file cooker does not ship. fusestore is internal.
+
+diff -up a/src/os/CMakeLists.txt b/src/os/CMakeLists.txt
+--- a/src/os/CMakeLists.txt
++++ b/src/os/CMakeLists.txt
+@@ -18,7 +18,7 @@ if(WITH_BLUESTORE)
+ endif()
+ 
+ if(WITH_FUSE)
+-  add_library(fusestore
++  add_library(fusestore STATIC
+     FuseStore.cc)
+   target_link_libraries(fusestore
+     PRIVATE FUSE::FUSE)
