@@ -246,6 +246,10 @@ export ACLOCAL_PATH="/usr/share/slibtool${ACLOCAL_PATH:+:$ACLOCAL_PATH}"
 # Arrow falls back to downloading its pinned xsimd when the system copy
 # is missing or too new. Point it at the vendored 13.0.0 tarball.
 export ARROW_XSIMD_URL="%{SOURCE2}"
+# ld.bfd does not look next to a linked shared library for its DT_NEEDED
+# entries. The cython modules link libcephfs and librados, then fail to
+# find libceph-common.so.2 in the build tree (684174).
+export LDFLAGS="${LDFLAGS:-%{build_ldflags}} -Wl,-rpath-link,$(pwd)/build/lib"
 
 # Dashboard frontend is already built in the dist tarball (no network
 # here). NVMe-oF monitor client needs gRPC, which cooker does not ship.
