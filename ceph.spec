@@ -266,6 +266,9 @@ export ACLOCAL_PATH="/usr/share/slibtool${ACLOCAL_PATH:+:$ACLOCAL_PATH}"
 	-DWITH_CATCH2:BOOL=OFF \
 	-DWITH_RADOSGW_LANCEDB:BOOL=OFF \
 	-DCEPHADM_BUNDLED_DEPENDENCIES=none
+# Several libraries include the generated legacy option headers without a
+# cmake edge, so a parallel build compiles them before y2c.py runs.
+%make legacy-option-headers
 %make
 
 %install
