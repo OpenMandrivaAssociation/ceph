@@ -1,2 +1,3 @@
 sources:
   ceph-22.0.0.tar.bz2: 106cdd7fc8aed8131a8f368c8d30a9bdff7adc4f
+  xsimd-13.0.0.tar.gz: cd1dcd979ac44271da53a5d4ededb7ea6b3ad411

@@ -24,10 +24,13 @@ Url:		https://ceph.com
 # archive (submodules, boost, liburing, prebuilt dashboard frontend).
 Source0:	http://download.ceph.com/tarballs/%{name}-%{version}.tar.bz2
 Source1:	ceph.rpmlintrc
+# Arrow 19 is written for xsimd 13. Cooker xsimd 14 has a different API.
+Source2:	xsimd-13.0.0.tar.gz
 # Cooker has no libnbd. NBD migration sources stay off without it.
 Patch0:		0001-make-libnbd-optional.patch
 Patch1:		0002-memstore-static-library.patch
 Patch2:		0003-erasure-code-option-headers.patch
+Patch3:		0004-isal-fpic.patch
 # dropped (no longer applies): Patch1:		ceph-12.2.0-use-provided-cpu-flag-values.patch
 # dropped (no longer applies): Patch2:		ceph-14.2.0-cflags.patch
 # dropped (no longer applies): Patch4:		ceph-14.2.0-cython-0.29.patch
@@ -240,6 +243,9 @@ export CXX=g++
 # default aclocal directory.
 export LIBTOOLIZE=slibtoolize
 export ACLOCAL_PATH="/usr/share/slibtool${ACLOCAL_PATH:+:$ACLOCAL_PATH}"
+# Arrow falls back to downloading its pinned xsimd when the system copy
+# is missing or too new. Point it at the vendored 13.0.0 tarball.
+export ARROW_XSIMD_URL="%{SOURCE2}"
 
 # Dashboard frontend is already built in the dist tarball (no network
 # here). NVMe-oF monitor client needs gRPC, which cooker does not ship.
