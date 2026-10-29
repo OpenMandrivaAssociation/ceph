@@ -60,7 +60,6 @@ BuildRequires:	pkgconfig(uuid)
 BuildRequires:	pkgconfig(leveldb)
 BuildRequires:	pkgconfig(libudev)
 BuildRequires:	pkgconfig(systemd)
-BuildRequires:	pkgconfig(babeltrace)
 BuildRequires:	pkgconfig(python3)
 BuildRequires:	pkgconfig(librabbitmq)
 BuildRequires:	pkgconfig(ldap)
@@ -218,6 +217,8 @@ export CXX=g++
 # here). NVMe-oF monitor client needs gRPC, which cooker does not ship.
 # QAT/UADK default on in 22 and build bundled copies; leave them off.
 # cephadm must not pip-install its dependencies during the build.
+# Cooker ships Babeltrace 2 (CLI and plugins only). rbd-replay-prep
+# needs the Babeltrace 1 library, so leave that tool off.
 %cmake \
 	-DBUILD_SHARED_LIBS:BOOL=ON \
 	-DWITH_OCF=ON -DWITH_NSS=ON -DWITH_PYTHON3=ON -DWITH_DEBUG=ON \
@@ -231,6 +232,7 @@ export CXX=g++
 	-DWITH_QATLIB:BOOL=OFF \
 	-DWITH_QATZIP:BOOL=OFF \
 	-DWITH_UADK:BOOL=OFF \
+	-DWITH_BABELTRACE:BOOL=OFF \
 	-DCEPHADM_BUNDLED_DEPENDENCIES=none \
 	-DEPYTHON_VERSION="${EPYTHON#python}" \
 	-DWITH_PYTHON3:BOOL=ON
@@ -331,7 +333,6 @@ rm -f %{buildroot}%{_bindir}/dmclock-*tests \
 %{_bindir}/rbd
 %{_bindir}/rbd-mirror
 %{_bindir}/rbd-nbd
-%{_bindir}/rbd-replay-prep
 %{_bindir}/rbdmap
 %{_bindir}/ceph-debugpack
 %{_bindir}/ceph-coverage
