@@ -81,6 +81,12 @@ BuildRequires:	pkgconfig(lmdb)
 BuildRequires:	pkgconfig(thrift)
 # nasm builds the ISA-L assembly. yasm is not a substitute.
 BuildRequires:	nasm
+# Bundled ISA-L runs autoreconf. slibtoolize stands in for libtoolize.
+BuildRequires:	autoconf
+BuildRequires:	automake
+BuildRequires:	slibtool
+# y2c.py imports yaml while generating the legacy option headers.
+BuildRequires:	python%{pyver}dist(pyyaml)
 # rbd-nbd requires libnl-genl. XFS support uses libhandle.
 # tcmalloc is the default allocator when gperftools is present.
 BuildRequires:	pkgconfig(libnl-genl-3.0)
@@ -229,6 +235,7 @@ object storage.
 
 export CC=gcc
 export CXX=g++
+export LIBTOOLIZE=slibtoolize
 
 # Dashboard frontend is already built in the dist tarball (no network
 # here). NVMe-oF monitor client needs gRPC, which cooker does not ship.
