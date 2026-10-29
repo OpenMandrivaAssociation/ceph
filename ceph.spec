@@ -222,6 +222,8 @@ export CXX=g++
 # cephadm must not pip-install its dependencies during the build.
 # Cooker ships Babeltrace 2 (CLI and plugins only). rbd-replay-prep
 # needs the Babeltrace 1 library, so leave that tool off.
+# Catch2 unit tests clone Catch2 at configure time. LanceDB's RGW
+# backend builds with cargo, which needs the network.
 %cmake \
 	-DBUILD_SHARED_LIBS:BOOL=ON \
 	-DWITH_OCF=ON -DWITH_NSS=ON -DWITH_PYTHON3=ON -DWITH_DEBUG=ON \
@@ -236,6 +238,8 @@ export CXX=g++
 	-DWITH_QATZIP:BOOL=OFF \
 	-DWITH_UADK:BOOL=OFF \
 	-DWITH_BABELTRACE:BOOL=OFF \
+	-DWITH_CATCH2:BOOL=OFF \
+	-DWITH_RADOSGW_LANCEDB:BOOL=OFF \
 	-DCEPHADM_BUNDLED_DEPENDENCIES=none \
 	-DEPYTHON_VERSION="${EPYTHON#python}" \
 	-DWITH_PYTHON3:BOOL=ON
