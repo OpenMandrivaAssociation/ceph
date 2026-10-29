@@ -74,6 +74,8 @@ BuildRequires:	pkgconfig(libcap)
 BuildRequires:	pkgconfig(libcap-ng)
 BuildRequires:	pkgconfig(liburing)
 BuildRequires:	pkgconfig(lua)
+# RGW POSIX backend requires LMDB.
+BuildRequires:	pkgconfig(lmdb)
 # Jaeger tracing is on by default and links system Thrift.
 BuildRequires:	pkgconfig(thrift)
 # nasm builds the ISA-L assembly. yasm is not a substitute.
