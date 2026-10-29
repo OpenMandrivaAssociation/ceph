@@ -76,6 +76,11 @@ BuildRequires:	pkgconfig(lua)
 BuildRequires:	pkgconfig(thrift)
 # nasm builds the ISA-L assembly. yasm is not a substitute.
 BuildRequires:	nasm
+# rbd-nbd requires libnl-genl. XFS support uses libhandle.
+# tcmalloc is the default allocator when gperftools is present.
+BuildRequires:	pkgconfig(libnl-genl-3.0)
+BuildRequires:	xfsprogs-devel
+BuildRequires:	pkgconfig(libtcmalloc)
 BuildRequires:	python-setuptools
 BuildRequires:	python-cython
 BuildRequires:	python-virtualenv
