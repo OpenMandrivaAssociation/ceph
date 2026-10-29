@@ -527,8 +527,6 @@ done
 %dir %{_docdir}/ceph
 %dir %{_includedir}/cephfs
 %{_includedir}/cephfs/*
-%dir %{_includedir}/cephfs/metrics
-%{_includedir}/cephfs/metrics/*
 %dir %{_includedir}/rados
 %{_includedir}/rados/*
 %dir %{_includedir}/radosstriper
