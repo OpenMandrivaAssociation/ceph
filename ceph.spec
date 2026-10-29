@@ -119,6 +119,10 @@ Obsoletes: %mklibname erasure 1
 %libpackage osd_tp 1
 %libpackage rados_tp 2
 %libpackage rbd_tp 1
+%libpackage bluestore_tp 1
+%libpackage mgr_op_tp 1
+%libpackage rgw_op_tp 2
+%libpackage rgw_rados_tp 2
 
 %description
 Ceph is a distributed network file system designed to provide excellent
@@ -291,12 +295,15 @@ export LDFLAGS="${LDFLAGS:-%{build_ldflags}} -Wl,-rpath-link,$(pwd)/build/lib"
 %install
 %makeinstall_std -C build
 
-mkdir -p %{buildroot}/lib
-mv %{buildroot}%{_libexecdir}/systemd %{buildroot}/lib/
-
+# Ceph 22 installs units directly into /usr/lib/systemd/system.
 mv %{buildroot}%{_prefix}/etc %{buildroot}
 
-chmod 0644 %{buildroot}%{_docdir}/ceph/sample.ceph.conf
+# ceph-create-keys is installed to prefix/sbin, not CMAKE_INSTALL_SBINDIR.
+if [ "/usr/sbin/ceph-create-keys" != "%{_sbindir}/ceph-create-keys" ]; then
+	mv %{buildroot}/usr/sbin/ceph-create-keys %{buildroot}%{_sbindir}/ceph-create-keys
+fi
+
+rm -f %{buildroot}%{_docdir}/ceph/sample.ceph.conf
 install -m 0644 -D src/logrotate.conf %{buildroot}%{_sysconfdir}/logrotate.d/ceph
 
 # udev rules
@@ -311,14 +318,34 @@ rm -rf %{buildroot}%{_sysconfdir}/init.d
 rm -f %{buildroot}%{_bindir}/dmclock-*tests \
 	%{buildroot}%{_bindir}/ceph_test_*
 
+# pip installs the cython extensions. An empty sitearch glob fails the
+# build, and a copy left under /usr/local is unpackaged.
+py_sitearch="%{buildroot}%{python3_sitearch}"
+mkdir -p "$py_sitearch"
+for mod in rados rbd cephfs rgw; do
+	found=$(find "$py_sitearch" -name "${mod}.cpython-*.so" -print -quit)
+	if [ -z "$found" ]; then
+		found=$(find "%{buildroot}" -name "${mod}.cpython-*.so" -print -quit)
+	fi
+	if [ -z "$found" ]; then
+		echo "python module ${mod} was not installed" >&2
+		exit 1
+	fi
+	dest=$(dirname "$found")
+	if [ "$dest" != "$py_sitearch" ]; then
+		mv "$found" "$py_sitearch"/
+		find "$dest" -maxdepth 1 -type d -name "${mod}-*.dist-info" -exec mv {} "$py_sitearch"/ \;
+	fi
+done
+
 %files
 %doc README COPYING
 %{_sysconfdir}/bash_completion.d/ceph
 %{_sysconfdir}/bash_completion.d/rados
 %{_sysconfdir}/bash_completion.d/rbd
 %{_udevrulesdir}/*.rules
-%{_systemunitdir}/*.service
-%{_systemunitdir}/*.target
+%{_unitdir}/*.service
+%{_unitdir}/*.target
 %{_bindir}/ceph-objectstore-tool
 %{_bindir}/cephfs-table-tool
 %{_bindir}/rbd-replay
@@ -343,11 +370,13 @@ rm -f %{buildroot}%{_bindir}/dmclock-*tests \
 %{_bindir}/ceph-mgr
 %{_datadir}/ceph/mgr
 %{_bindir}/ceph-monstore-tool
-%{_bindir}/ceph-osdomap-tool
 %{_bindir}/ceph_bench_log
-%{_bindir}/ceph_erasure_code
 %{_bindir}/ceph_erasure_code_benchmark
-%{_bindir}/ceph_kvstorebench
+%{_bindir}/ceph-erasure-code-tool
+%{_bindir}/ceph_ec_consistency_checker
+%{_bindir}/ceph-dedup-daemon
+%{_bindir}/ceph-dedup-tool
+%{_bindir}/cephfs-tool
 %{_bindir}/ceph_multi_stress_watch
 %{_bindir}/ceph_objectstore_bench
 %{_bindir}/ceph_omapbench
@@ -356,18 +385,10 @@ rm -f %{buildroot}%{_bindir}/dmclock-*tests \
 %{_bindir}/ceph_perf_msgr_server
 %{_bindir}/ceph_perf_objectstore
 %{_bindir}/ceph_psim
-%{_bindir}/ceph_radosacl
 %{_bindir}/ceph_rgw_jsonparser
 %{_bindir}/ceph_rgw_multiparser
 %{_bindir}/ceph_scratchtool
 %{_bindir}/ceph_scratchtoolpp
-%{_bindir}/ceph_smalliobench
-%{_bindir}/ceph_smalliobenchdumb
-%{_bindir}/ceph_smalliobenchfs
-%{_bindir}/ceph_smalliobenchrbd
-%{_bindir}/ceph_tpbench
-%{_bindir}/ceph_xattr_bench
-%{_bindir}/ceph-crush-location
 %{_bindir}/ceph-rbdnamer
 %{_bindir}/ceph-exporter
 %{_bindir}/ceph-crash
@@ -414,7 +435,9 @@ rm -f %{buildroot}%{_bindir}/dmclock-*tests \
 %{_libdir}/ceph/erasure-code
 %{_libdir}/ceph/extblkdev
 %{_libdir}/ceph/librbd
+%{_libdir}/ceph/denc
 %{_libdir}/ceph/libceph-common.so*
+%{_prefix}/lib/ocf/resource.d/ceph/rbd
 %_mandir/man8/ceph-authtool.8*
 %_mandir/man8/ceph-clsinfo.8*
 %_mandir/man8/ceph-conf.8*
@@ -463,11 +486,18 @@ rm -f %{buildroot}%{_bindir}/dmclock-*tests \
 %{_bindir}/rbd-fuse
 %_mandir/man8/ceph-fuse.8*
 %_mandir/man8/rbd-fuse.8*
+%_mandir/man8/mount.fuse.ceph.8*
 %{_sbindir}/mount.fuse.ceph
 
 %files radosgw
 %{_bindir}/radosgw
 %{_bindir}/radosgw-admin
+%{_bindir}/radosgw-es
+%{_bindir}/rgw-export-bucket-usage
+%{_bindir}/rgw-format-bucket-usage
+%{_bindir}/rgw-gap-list-comparator
+%{_bindir}/rgw-standalone
+%{_bindir}/rgw-standalone-admin
 %_mandir/man8/radosgw-admin.8*
 %_mandir/man8/radosgw.8*
 #% {_sbindir}/rcceph-radosgw
@@ -495,10 +525,10 @@ rm -f %{buildroot}%{_bindir}/dmclock-*tests \
 
 %files -n %{devname}
 %dir %{_docdir}/ceph
-#%{_docdir}/ceph/sample.ceph.conf
-#%{_docdir}/ceph/sample.fetch_config
 %dir %{_includedir}/cephfs
 %{_includedir}/cephfs/*
+%dir %{_includedir}/cephfs/metrics
+%{_includedir}/cephfs/metrics/*
 %dir %{_includedir}/rados
 %{_includedir}/rados/*
 %dir %{_includedir}/radosstriper
@@ -517,6 +547,10 @@ rm -f %{buildroot}%{_bindir}/dmclock-*tests \
 %{_libdir}/libosd_tp.so
 %{_libdir}/librados_tp.so
 %{_libdir}/librbd_tp.so
+%{_libdir}/libbluestore_tp.so
+%{_libdir}/libmgr_op_tp.so
+%{_libdir}/librgw_op_tp.so
+%{_libdir}/librgw_rados_tp.so
 
 %files -n python-ceph
 %{python3_sitelib}/*
