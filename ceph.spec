@@ -224,10 +224,10 @@ export CXX=g++
 # needs the Babeltrace 1 library, so leave that tool off.
 # Catch2 unit tests clone Catch2 at configure time. LanceDB's RGW
 # backend builds with cargo, which needs the network.
+# WITH_PYTHON3 is a version string in 22. "3" selects the current Python 3.
 %cmake \
 	-DBUILD_SHARED_LIBS:BOOL=ON \
-	-DWITH_OCF=ON -DWITH_NSS=ON -DWITH_PYTHON3=ON -DWITH_DEBUG=ON \
-	-DMGR_PYTHON_VERSION=3 \
+	-DWITH_OCF=ON -DWITH_NSS=ON -DWITH_PYTHON3=3 -DWITH_DEBUG=ON \
 	-DWITH_CEPHFS:BOOL=ON \
 	-DWITH_SYSTEMD:BOOL=ON \
 	-DWITH_SYSTEM_BOOST:BOOL=ON \
@@ -240,9 +240,7 @@ export CXX=g++
 	-DWITH_BABELTRACE:BOOL=OFF \
 	-DWITH_CATCH2:BOOL=OFF \
 	-DWITH_RADOSGW_LANCEDB:BOOL=OFF \
-	-DCEPHADM_BUNDLED_DEPENDENCIES=none \
-	-DEPYTHON_VERSION="${EPYTHON#python}" \
-	-DWITH_PYTHON3:BOOL=ON
+	-DCEPHADM_BUNDLED_DEPENDENCIES=none
 %make
 
 %install
